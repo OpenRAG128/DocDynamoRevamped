@@ -1,9 +1,23 @@
 import React from 'react'
+import { Sun, Moon } from 'lucide-react'
 
-export default function Header() {
+export default function Header({ darkMode, toggleDarkMode }) {
   return (
-      <div className='flex justify-center items-center h-1/12 w-full border-2'>
-        Header  
+    <div className={`pr-4 flex justify-end items-center h-1/12 w-full border-b transition-colors ${
+      darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
+    } gap-3`}>
+      <button className='px-2 py-1 rounded-md bg-purple-600 text-white cursor-pointer hover:bg-purple-700 transition-colors'>
+        Sign up
+      </button>
+      <button 
+        className={`cursor-pointer p-1.5 rounded-md transition-colors ${
+          darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-100 hover:bg-gray-200"
+        }`} 
+        onClick={toggleDarkMode}
+        aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {darkMode ? <Sun size={20} color='#fbbf24'/> : <Moon size={20} color='#4b5563'/>}
+      </button>
     </div>
   )
 }
