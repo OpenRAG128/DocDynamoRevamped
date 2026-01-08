@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import Header from './Header.jsx'
-import { Upload, MessageSquare, FileText, Link } from 'lucide-react'
+import { useState } from 'react';
+import Header from './Header.jsx';
+import { Upload, MessageSquare, FileText, Link } from 'lucide-react';
 import Card from './Card.jsx';
 
 export default function MainSection({ darkMode, toggleDarkMode }) {
@@ -25,15 +25,16 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
     <div className='flex flex-col w-full min-h-screen gap-5'>
       <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       <div className='flex justify-center items-center flex-1 w-full bg-background px-4 sm:px-6 lg:px-8 pb-10'>
-        <div className='flex flex-col justify-center items-center gap-6 sm:gap-8 max-w-7xl w-full'>
-          <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 sm:mb-5'>
+        <div className='flex flex-col justify-center items-center gap-2 sm:gap-8 max-w-7xl w-full'>
+          {/* Hero Section Header*/}
+          <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 sm:mb-5 font-family-sans mt-2'>
             <img
               src="/hero.png"
               alt="Contextual Intelligence"
               className='w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 drop-shadow-2xl'
             />
-            <div className='flex flex-col justify-center items-center sm:items-start gap-1 sm:gap-2'>
-              <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-[#3258d5] to-accent font-extrabold font-display text-center sm:text-left leading-tight'>
+            <div className='flex flex-col justify-center items-center sm:items-start sm:gap-2'>
+              <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-[#3258d5] to-accent font-extrabold text-center sm:text-left leading-tight'>
                 Contextual Intelligence
               </span>
               <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-text font-extrabold font-display text-center sm:text-left leading-tight'>
@@ -52,8 +53,8 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
           >
             {/* Header */}
             <div className='pb-4 sm:pb-6 flex flex-col justify-center items-center gap-2'>
-              <h2 className='text-text text-center font-display text-xl sm:text-2xl font-bold px-4'>Chat with any type of file</h2>
-              <div className='flex flex-wrap justify-center items-center gap-2 text-xs sm:text-sm text-text/60'>
+              <h2 className='text-text text-center font-family-display text-xl sm:text-2xl font-bold px-4'>Chat with any type of file</h2>
+              <div className='flex flex-wrap justify-center font-family-display items-center gap-2 text-xs sm:text-sm text-text/60'>
                 <span className='flex items-center gap-1'><FileText size={14} /> PDF</span>
                 <span>•</span>
                 <span className='flex items-center gap-1'><FileText size={14} /> DOCX</span>
@@ -65,10 +66,10 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
             </div>
 
             {/* Action cards */}
-            <div className='flex flex-col md:flex-row justify-center items-stretch gap-4 sm:gap-6 w-full'>
+            <div className='font-family-display flex flex-col md:flex-row justify-center items-stretch gap-4 sm:gap-6 w-full'>
               {/* Upload Card */}
               <div
-                className={`group relative flex flex-col justify-center items-center min-h-[240px] sm:h-64 w-full md:w-1/2 lg:w-80 rounded-lg sm:rounded-xl transition-all duration-300 cursor-pointer overflow-hidden
+                className={`group relative flex flex-col justify-center items-center min-h-60 sm:h-64 w-full md:w-1/2 lg:w-80 rounded-lg sm:rounded-xl transition-all duration-300 cursor-pointer overflow-hidden
                   ${isDragging
                     ? 'border-2 border-dashed border-accent bg-accent/10 scale-105'
                     : darkMode
