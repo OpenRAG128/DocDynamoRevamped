@@ -12,6 +12,9 @@ import {
   GraduationCap,
   Moon,
   Sun,
+  EyeIcon,
+  Lightbulb,
+  CircleQuestionMarkIcon,
 } from "lucide-react";
 
 export default function Sidebar({ darkMode, toggleDarkMode }) {
@@ -142,37 +145,31 @@ export default function Sidebar({ darkMode, toggleDarkMode }) {
             </div>
 
             {/* Tools */}
-            {/* <div className="px-4 mt-6">
+            <div className="px-4 mt-6">
               <p className={`text-sm mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Tools</p>
 
               <button className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${
                 darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
               }`}>
-                <PencilIcon size={18} />
-                AI Writer
+                <CircleQuestionMarkIcon size={18} />
+                Questions
               </button>
 
               <button className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${
                 darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
               }`}>
-                <HatGlassesIcon size={18} />
-                AI Detector
+                <Lightbulb size={18} />
+                Concepts
               </button>
 
               <button className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${
                 darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
               }`}>
-                <Youtube size={18} />
-                YouTube chat
+                <EyeIcon size={18} />
+                Add-on info
               </button>
 
-              <button className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${
-                darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
-              }`}>
-                <GraduationCap size={18} />
-                Research
-              </button>
-            </div> */}
+            </div>
           </>
         )}
       </div>
