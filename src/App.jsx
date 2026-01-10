@@ -23,10 +23,13 @@ export default function App() {
           darkMode={darkMode}
           toggleDarkMode={() => setDarkMode(prev => !prev)}
         />
+        
+        <main className="flex-1 overflow-y-auto">
         <MainSection
           darkMode={darkMode}
           toggleDarkMode={() => setDarkMode(prev => !prev)}
         />
+        </main>
       </div>
     </Router>
   )
