@@ -1,5 +1,5 @@
 import { useState , useEffect} from "react";
-import { AnimatedList } from "@/components/ui/animated-list";
+import { AnimatedList } from "./AnimatedList.jsx";
 import {
   MessageCircle,
   Folder,
@@ -7,17 +7,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   PlusIcon,
-  PencilIcon,
-  HatGlassesIcon,
-  Youtube,
-  GraduationCap,
-  Moon,
-  Sun,
   EyeIcon,
   Lightbulb,
   CircleQuestionMarkIcon,
   Smartphone,
-  BotIcon,
 } from "lucide-react";
 
 export default function Sidebar({ darkMode, toggleDarkMode }) {
@@ -68,17 +61,6 @@ export default function Sidebar({ darkMode, toggleDarkMode }) {
               <PanelLeftClose size={18} />
             )}
           </button>
-
-          {!collapsed && (
-            <button
-              className={`ml-auto border px-4 py-2 rounded-full text-sm transition-colors ${darkMode
-                ? "border-gray-600 text-gray-300 hover:bg-gray-800"
-                : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                }`}
-            >
-              +New
-            </button>
-          )}
         </div>
 
         {/* ================= COLLAPSED VIEW ================= */}
@@ -139,25 +121,6 @@ export default function Sidebar({ darkMode, toggleDarkMode }) {
               >
                 <PlusIcon size={18} />
                 Start your first chat
-              </button>
-            </div>
-
-            {/* Folders */}
-            <div className="px-4 mt-4">
-              <p
-                className={`text-sm mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
-              >
-                Folders
-              </p>
-              <button
-                className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${darkMode
-                  ? "text-gray-300 hover:bg-gray-800"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
-              >
-                <PlusIcon size={18} />
-                New folder
               </button>
             </div>
 
