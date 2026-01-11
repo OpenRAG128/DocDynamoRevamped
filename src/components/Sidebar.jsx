@@ -23,15 +23,19 @@ export default function Sidebar({ darkMode, collapsed }) {
   }, []);
   return (
     <aside
-      className={`h-full border-r flex flex-col justify-between transition-all duration-200
+      className={`h-full flex border-r drop-shadow-xs flex-col justify-between transition-all duration-200
       ${collapsed ? "w-16" : "w-64"}
-     ${darkMode
+      ${darkMode
           ? "bg-gray-900"
           : "bg-white"}
+        ${darkMode
+          ? "bg-gray-900 border-gray-700"
+          : "bg-white border-gray-200"
+        }
       `}
     >
       <div>
-        
+
         {/* ================= COLLAPSED VIEW ================= */}
         {collapsed && (
 

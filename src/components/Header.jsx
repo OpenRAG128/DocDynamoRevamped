@@ -3,7 +3,7 @@ import { Sun, Moon, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar }) {
   return (
     <div className={`pr-4 py-3 flex justify-between items-center w-full border-b transition-colors ${darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
-      } gap-3`}>
+      } gap-3 drop-shadow-sm`}>
       <div className="flex items-center gap-2 pl-4">
         <span
           className={`text-2xl font-family-sans font-extrabold ${darkMode ? "text-purple-400" : "text-purple-600"
