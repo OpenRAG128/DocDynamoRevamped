@@ -1,13 +1,50 @@
-import { useState } from 'react';
-import Header from './Header.jsx';
-import { Upload, MessageSquare, FileText, Link } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Upload, MessageSquare, FileText, Link, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
 
-export default function MainSection({ darkMode, toggleDarkMode }) {
+export default function MainSection({ darkMode }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
+
+  const handleFiles = (files) => {
+    if (!files || files.length === 0) return;
+
+    const incomingFiles = Array.from(files);
+
+    if (incomingFiles.length > 5) {
+      setError('You can upload up to 5 files at a time.');
+      setSelectedFiles([]);
+      return;
+    }
+
+    const allowedExtensions = ['pdf', 'doc', 'docx', 'txt'];
+    const hasInvalid = incomingFiles.some((file) => {
+      const extension = file.name.split('.').pop().toLowerCase();
+      return !allowedExtensions.includes(extension);
+    });
+
+    if (hasInvalid) {
+      setError('Some files are unsupported. Please upload only PDF, DOC/DOCX, or TXT files.');
+      setSelectedFiles([]);
+      return;
+    }
+
+    setError('');
+    setSelectedFiles(incomingFiles);
+
+    // Placeholder: wire this into your processing/upload pipeline
+    // e.g. send to backend or client-side parser
+    console.log('Selected files:', incomingFiles);
+  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
     setIsDragging(true);
   };
 
@@ -17,17 +54,23 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
 
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
-    // Handle file upload logic here
+    const { files } = e.dataTransfer || {};
+    handleFiles(files);
+  };
+
+  const handleFileChange = (e) => {
+    const { files } = e.target || {};
+    handleFiles(files);
   };
 
   return (
-    <div className='flex flex-col w-full min-h-screen gap-5'>
-      <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-      <div className='flex justify-center items-center flex-1 w-full bg-background px-4 sm:px-6 lg:px-8 pb-10'>
-        <div className='flex flex-col justify-center items-center gap-2 sm:gap-8 max-w-7xl w-full'>
+    <div className='flex flex-col w-full min-h-full gap-5'>
+      <div className='flex justify-center items-center flex-1 w-full bg-background px-4 sm:px-6 lg:px-8 py-5'>
+        <div className='flex flex-col justify-center items-center sm:gap-8 max-w-7xl w-full'>
           {/* Hero Section Header*/}
-          <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 sm:mb-5 font-family-sans mt-2'>
+          <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 font-family-sans mt-2'>
             <img
               src="/hero.png"
               alt="Contextual Intelligence"
@@ -44,11 +87,11 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
           </div>
           {/* Main interaction container */}
           <div
-            className={`p-2 sm:p-6 lg:p-8 flex flex-col justify-center items-center rounded-xl sm:rounded-2xl backdrop-blur-sm transition-all duration-300 w-206.25 relative ${darkMode ? "bg-gray-900/40 border border-gray-700/50" : "bg-white/60 border border-gray-200/50"}`}
+            className={`p-2 sm:p-6 lg:p-8 flex flex-col justify-center items-center rounded-xl sm:rounded-2xl backdrop-blur-xl transition-all duration-300 w-212.25 relative ${darkMode ? "bg-white/5 border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" : "bg-white/30 border border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]"}`}
             style={{
               boxShadow: darkMode
-                ? '0 0 30px rgba(103, 80, 246, 0.4), 0 0 60px rgba(103, 80, 246, 0.3), 0 0 90px rgba(103, 80, 246, 0.2), 0 10px 40px rgba(0, 0, 0, 0.5)'
-                : '0 0 30px rgba(50, 88, 213, 0.25), 0 0 60px rgba(50, 88, 213, 0.15), 0 0 90px rgba(50, 88, 213, 0.1), 0 10px 40px rgba(0, 0, 0, 0.1)'
+                ? '0 0 30px rgba(103, 80, 246, 0.4), 0 0 60px rgba(103, 80, 246, 0.3), 0 0 90px rgba(103, 80, 246, 0.2), 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1)'
+                : '0 0 30px rgba(50, 88, 213, 0.25), 0 0 60px rgba(50, 88, 213, 0.15), 0 0 90px rgba(50, 88, 213, 0.1), 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
             }}
           >
             {/* Header */}
@@ -80,27 +123,72 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
                 {/* Gradient overlay on hover */}
                 <div className='absolute inset-0 bg-gradient-to-br from-[#3258d5]/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
 
-                <div className='relative z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-6'>
-                  <div className={`p-3 sm:p-4 rounded-full transition-all duration-300 ${darkMode ? 'bg-gray-700 group-hover:bg-accent/20' : 'bg-gray-200 group-hover:bg-accent/10'}`}>
-                    <Upload size={28} className={`sm:w-8 sm:h-8 transition-all duration-300 ${isDragging ? 'text-accent animate-bounce' : 'text-gray-500 group-hover:text-accent'}`} />
+                {selectedFiles.length === 0 ?
+                  <div className='relative z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-6'>
+                    <div className={`p-3 sm:p-4 rounded-full transition-all duration-300 ${darkMode ? 'bg-gray-700 group-hover:bg-accent/20' : 'bg-gray-200 group-hover:bg-accent/10'}`}>
+                      <Upload size={28} className={`sm:w-8 sm:h-8 transition-all duration-300 ${isDragging ? 'text-accent animate-bounce' : 'text-gray-500 group-hover:text-accent'}`} />
+                    </div>
+                    <div className='flex flex-col items-center gap-2'>
+                      <p className='text-text font-semibold text-base sm:text-lg'>Drop files here</p>
+                      <p className='text-text/60 text-xs sm:text-sm text-center'>or</p>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                        className='px-5 sm:px-6 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer'
+                      >
+                        Browse Files
+                      </button>
+                    </div>
+                    <p className='text-text/40 text-xs text-center mt-1 sm:mt-2'>Supports up to 5 PDF, DOCX, or TXT files
+                    </p>
                   </div>
-                  <div className='flex flex-col items-center gap-2'>
-                    <p className='text-text font-semibold text-base sm:text-lg'>Drop a file here</p>
-                    <p className='text-text/60 text-xs sm:text-sm text-center'>or</p>
-                    <button className='px-5 sm:px-6 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 transition-all duration-300'>
-                      Browse Files
+                  : <div className='relative z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-6'>
+                    <div className='flex flex-col items-center'>
+                      <p className='font-bold'>
+                        {
+                          selectedFiles.length === 1 ? "Selected Document" : "Selected Documents :"
+                        }
+                      </p>
+                      {selectedFiles &&
+                      selectedFiles.map((file) => {
+                        return <p className='text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate max-w-full'>
+                          {file.name}
+                        </p>
+                      })
+                    }
+                    </div>
+                    {error && (
+                      <p className='text-red-500 text-xs text-center mt-1 sm:mt-2 px-2'>
+                        {error}
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFiles([]);
+                      }}
+                      className='px-5 sm:px-6 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer'
+                    >
+                      Reset
                     </button>
                   </div>
-                  <p className='text-text/40 text-xs text-center mt-1 sm:mt-2 px-2'>Supports PDF, DOCX, TXT, and more</p>
-                </div>
+                }
               </div>
 
               {/* Start Chat Card */}
               <div
-                className={`group relative flex flex-col min-h-[240px] sm:h-64 w-full md:w-1/2 lg:w-87.5 rounded-lg sm:rounded-2xl transition-all duration-300 overflow-hidden
+                className={`group relative flex flex-col min-h-60 sm:h-64 w-full md:w-1/2 lg:w-87.5 rounded-lg sm:rounded-2xl transition-all duration-300 overflow-hidden
     ${darkMode
                     ? 'bg-gray-900/60 border border-gray-700 hover:border-accent/50'
                     : 'bg-white border border-gray-200 hover:border-accent/50'
@@ -112,7 +200,7 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
                 <div className="relative z-10 flex flex-col h-full p-4 sm:p-5">
                   {/* Header */}
                   <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                    <MessageSquare size={16} className="sm:w-[18px] sm:h-[18px] text-accent" />
+                    <MessageSquare size={16} className="sm:w-4.5 sm:h-4.5 text-accent" />
                     <h3 className="font-display text-base sm:text-lg font-semibold text-text">
                       Start a chat
                     </h3>
@@ -143,8 +231,8 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
                       </span>
 
                       {/* Send Button */}
-                      <button className="p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg transition-all hover:scale-105">
-                        <MessageSquare size={18} className="text-white" />
+                      <button className="p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer">
+                        <SendHorizontalIcon size={18} className="text-white" />
                       </button>
                     </div>
                   </div>
@@ -155,8 +243,8 @@ export default function MainSection({ darkMode, toggleDarkMode }) {
           <Card
             quote="It's like ChatGPT, but for"
             highlightText=" research papers."
-            authorName="Mushtaq Bilal, PhD"
-            authorHandle="@MushtaqBilalPhD"
+            authorName="Rick Grimes, PhD"
+            authorHandle="@SolictingSherrif"
             authorImage="/avatar.jpg"
             darkMode={darkMode}
           />
