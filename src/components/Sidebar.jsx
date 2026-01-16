@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatedList } from "./AnimatedList.jsx";
 import {
   MessageCircle,
@@ -9,10 +9,19 @@ import {
   Lightbulb,
   CircleQuestionMarkIcon,
   Smartphone,
+  MoreVertical,
+  Edit3,
+  Share2,
+  RotateCcw,
+  Trash2,
 } from "lucide-react";
 
 export default function Sidebar({ darkMode, collapsed }) {
   const [cycle, setCycle] = useState(0);
+  const [chats, setChats] = useState([]);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -21,6 +30,62 @@ export default function Sidebar({ darkMode, collapsed }) {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    // Load chats from localStorage
+    try {
+      const savedChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
+      setChats(savedChats);
+    } catch (error) {
+      console.error('Error loading chats:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Close menu when clicking outside
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleRenameChat = (chatId) => {
+    const newTitle = prompt('Enter new chat name:');
+    if (newTitle && newTitle.trim()) {
+      const updatedChats = chats.map(chat =>
+        chat.id === chatId ? { ...chat, title: newTitle.trim() } : chat
+      );
+      setChats(updatedChats);
+      localStorage.setItem('docDynamoChats', JSON.stringify(updatedChats));
+    }
+    setOpenMenuId(null);
+  };
+
+  const handleShareChat = (chatId) => {
+    alert('Share functionality coming soon!');
+    setOpenMenuId(null);
+  };
+
+  const handleResetChat = (chatId) => {
+    if (confirm('Are you sure you want to reset this chat?')) {
+      // Reset chat logic here
+      alert('Chat reset!');
+    }
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteChat = (chatId) => {
+    if (confirm('Are you sure you want to delete this chat?')) {
+      const updatedChats = chats.filter(chat => chat.id !== chatId);
+      setChats(updatedChats);
+      localStorage.setItem('docDynamoChats', JSON.stringify(updatedChats));
+    }
+    setOpenMenuId(null);
+  };
   return (
     <aside
       className={`h-full flex border-r font-family-sans drop-shadow-xs flex-col justify-between transition-all duration-200
@@ -38,7 +103,6 @@ export default function Sidebar({ darkMode, collapsed }) {
 
         {/* ================= COLLAPSED VIEW ================= */}
         {collapsed && (
-
           <div className="flex flex-col items-center gap-6 mt-10">
             <button
               className={`transition-colors ${darkMode
@@ -88,10 +152,109 @@ export default function Sidebar({ darkMode, collapsed }) {
                   ? "text-gray-300 hover:bg-gray-800"
                   : "text-gray-700 hover:bg-gray-100"
                   }`}
+                onClick={() => window.location.href = '/'}
               >
                 <PlusIcon size={18} />
-                Start your first chat
+                Start new chat
               </button>
+
+              {/* Chat History */}
+              <div className="mt-3 space-y-1 max-h-64 overflow-y-auto">
+                {chats.map((chat) => (
+                  <div key={chat.id} className="relative group">
+                    <button
+                      onClick={() => window.location.href = `/chat/${chat.id}`}
+                      className={`flex items-start gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors text-left ${darkMode
+                        ? "text-gray-300 hover:bg-gray-800"
+                        : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                    >
+                      <MessageCircle size={16} className="mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="truncate">{chat.title}</p>
+                        <p className={`text-xs mt-0.5 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                          {new Date(chat.timestamp).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Menu Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setMenuPosition({
+                          top: rect.top + 20,
+                          left: rect.right - 7  // Position to the right of the button with 4px gap
+                        });
+                        setOpenMenuId(openMenuId === chat.id ? null : chat.id);
+                      }}
+                      className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${darkMode
+                        ? "hover:bg-gray-700 text-gray-400"
+                        : "hover:bg-gray-200 text-gray-600"
+                        }`}
+                    >
+                      <MoreVertical size={16} />
+                    </button>
+
+                    {/* Context Menu - Rendered outside sidebar with fixed positioning */}
+                    {openMenuId === chat.id && (
+                      <div
+                        ref={menuRef}
+                        style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
+                        className={`fixed w-48 rounded-lg shadow-lg border z-50 py-1 ${darkMode
+                          ? "bg-gray-800 border-gray-700"
+                          : "bg-white border-gray-200"
+                          }`}
+                      >
+                        <button
+                          onClick={() => handleRenameChat(chat.id)}
+                          className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                        >
+                          <Edit3 size={16} />
+                          Rename chat
+                        </button>
+
+                        <button
+                          onClick={() => handleShareChat(chat.id)}
+                          className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                        >
+                          <Share2 size={16} />
+                          Share chat
+                        </button>
+
+                        <button
+                          onClick={() => handleResetChat(chat.id)}
+                          className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                        >
+                          <RotateCcw size={16} />
+                          Reset chat
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteChat(chat.id)}
+                          className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                            ? "text-red-400 hover:bg-gray-700"
+                            : "text-red-600 hover:bg-gray-100"
+                            }`}
+                        >
+                          <Trash2 size={16} />
+                          Delete chat
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Tools */}
@@ -121,72 +284,73 @@ export default function Sidebar({ darkMode, collapsed }) {
                 <Smartphone size={18} />
                 Mobile App
               </button>
-
             </div>
           </>
         )}
-      </div>
+      </div >
 
       {/* ================= FOOTER ================= */}
-      {!collapsed && (
-        <div
-          className={`p-4 space-y-2 border-t ${darkMode ? "border-gray-700" : "border-gray-200"
-            }`}
-        >
-
-
-
+      {
+        !collapsed && (
           <div
-            className="mb-4 overflow-hidden"
-          >
-            <AnimatedList key={cycle} delay={2000} className="space-y-2">
-              <div
-                className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl border
-      ${darkMode
-                    ? "bg-white/10 border-white/25 text-gray-200"
-                    : "bg-black/10 border-black/25 text-gray-800"}
-    `}
-              >
-                Know what's better than Static Documents?
-              </div>
-
-              <div
-
-                className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl font-medium border
-      ${darkMode
-                    ? "bg-white/10 border-white/25 text-purple-300"
-                    : "bg-black/10 border-black/25 text-purple-700"}
-        `}
-
-              >
-                DocDynamo
-              </div>
-
-              <div
-                className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl border
-      ${darkMode
-                    ? "bg-white/10 border-white/25 text-gray-300"
-                    : "bg-black/10 border-black/25 text-gray-700"}
-    `}
-              >
-                Coz it makes them talk
-              </div>
-            </AnimatedList>
-
-
-          </div>
-
-
-          <button
-            className={`block w-full text-center py-2 rounded-full font-medium transition-colors ${darkMode
-              ? "bg-purple-600 text-white hover:bg-purple-700"
-              : "bg-purple-600 text-white hover:bg-purple-700"
+            className={`p-4 space-y-2 border-t ${darkMode ? "border-gray-700" : "border-gray-200"
               }`}
           >
-            Sign up
-          </button>
-        </div>
-      )}
-    </aside>
+
+
+
+            <div
+              className="mb-4 overflow-hidden"
+            >
+              <AnimatedList key={cycle} delay={2000} className="space-y-2">
+                <div
+                  className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl border
+      ${darkMode
+                      ? "bg-white/10 border-white/25 text-gray-200"
+                      : "bg-black/10 border-black/25 text-gray-800"}
+    `}
+                >
+                  Know what's better than Static Documents?
+                </div>
+
+                <div
+
+                  className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl font-medium border
+      ${darkMode
+                      ? "bg-white/10 border-white/25 text-purple-300"
+                      : "bg-black/10 border-black/25 text-purple-700"}
+        `}
+
+                >
+                  DocDynamo
+                </div>
+
+                <div
+                  className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl border
+      ${darkMode
+                      ? "bg-white/10 border-white/25 text-gray-300"
+                      : "bg-black/10 border-black/25 text-gray-700"}
+    `}
+                >
+                  Coz it makes them talk
+                </div>
+              </AnimatedList>
+
+
+            </div>
+
+
+            <button
+              className={`block w-full text-center py-2 rounded-full font-medium transition-colors ${darkMode
+                ? "bg-purple-600 text-white hover:bg-purple-700"
+                : "bg-purple-600 text-white hover:bg-purple-700"
+                }`}
+            >
+              Sign up
+            </button>
+          </div>
+        )
+      }
+    </aside >
   );
 }
