@@ -20,8 +20,27 @@ export default function MainSection({ darkMode }) {
   const [error, setError] = useState('');
   const [selectedRole, setSelectedRole] = useState("Student");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [chatMessage, setChatMessage] = useState('');
   const fileInputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  const saveChat = (chatId, chatData) => {
+    try {
+      const existingChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
+      const newChat = {
+        id: chatId,
+        title: chatData.message.substring(0, 50) || 'New Chat',
+        timestamp: new Date().toISOString(),
+        role: chatData.role,
+        files: chatData.files.map(f => f.name),
+        message: chatData.message
+      };
+      existingChats.unshift(newChat);
+      localStorage.setItem('docDynamoChats', JSON.stringify(existingChats));
+    } catch (error) {
+      console.error('Error saving chat:', error);
+    }
+  };
   const roles = [
     { label: "Student", icon: <FaGraduationCap /> },
     { label: "Researcher", icon: <FaFlask /> },
@@ -205,11 +224,6 @@ export default function MainSection({ darkMode }) {
                         })
                       }
                     </div>
-                    {error && (
-                      <p className='text-red-500 text-xs text-center mt-1 sm:mt-2 px-2'>
-                        {error}
-                      </p>
-                    )}
                     <button
                       type="button"
                       onClick={() => {
@@ -257,8 +271,8 @@ export default function MainSection({ darkMode }) {
                   >
                     <textarea
                       placeholder="Ask something like “Summarize this document” or “Explain key points”"
-                      className="flex-1 resize-none bg-transparent outline-none text-sm text-text placeholder:text-text/40"
-                    />
+                      className="flex-1 resize-none bg-transparent outline-none text-sm text-text placeholder:text-text/40" value={chatMessage}
+                      onChange={(e) => setChatMessage(e.target.value)} />
 
                     {/* Custom Role Dropdown */}
                     <div ref={dropdownRef} className="relative w-1/2 mt-2">
@@ -299,7 +313,7 @@ export default function MainSection({ darkMode }) {
                               }}
                               className={`w-full cursor-pointer px-3 py-2 text-sm flex items-center gap-2 transition-colors ${selectedRole === role.label
                                 ? darkMode
-                                  ? 'bg-accent/20 text-accent'
+                                  ? 'bg-accent/90 text-accent'
                                   : 'bg-accent/10 text-accent'
                                 : darkMode
                                   ? 'text-text hover:bg-gray-600'
@@ -316,13 +330,45 @@ export default function MainSection({ darkMode }) {
 
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-1">
-                      {/* Shortcut hint */}
-                      <span className="text-xs text-text/50">
-                        CTRL + V to paste text or links
-                      </span>
+                      {error ? 
+                        (
+                          <p className='text-red-500 text-xs text-wrap mt-2 px-2'>
+                            {error}
+                          </p>
+                        )
+                        : 
+                          (<span className="text-xs text-text/50">
+                            CTRL + V to paste text or links
+                          </span>)
+                      }
 
                       {/* Send Button */}
-                      <button className="p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer">
+                      <button
+                        onClick={() => {
+                          // Validation checks
+                          if (selectedFiles.length === 0) {
+                            setError('Please upload at least one file before starting a chat.');
+                            return;
+                          }
+
+                          if (!chatMessage.trim()) {
+                            setError('Please enter a message before starting a chat.');
+                            return;
+                          }
+
+                          // Clear any previous errors
+                          setError('');
+
+                          const uniqueId = crypto.randomUUID();
+                          saveChat(uniqueId, {
+                            message: chatMessage,
+                            role: selectedRole,
+                            files: selectedFiles
+                          });
+                          window.location.href = `/chat/${uniqueId}`;
+                        }}
+                        className="p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer"
+                      >
                         <SendHorizontalIcon size={18} className="text-white" />
                       </button>
                     </div>
