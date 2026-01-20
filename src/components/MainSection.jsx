@@ -218,7 +218,7 @@ export default function MainSection({ darkMode }) {
                       </p>
                       {selectedFiles &&
                         selectedFiles.map((file) => {
-                          return <p className='text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate max-w-full'>
+                          return <p className='text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate max-w-11/12'>
                             {file.name}
                           </p>
                         })

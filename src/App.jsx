@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter as Router } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
+import ChatPage from './components/ChatPage'
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -36,9 +37,16 @@ export default function App() {
           />
 
           <main className="flex-1 overflow-y-auto">
-            <MainSection
-              darkMode={darkMode}
-            />
+            <Routes>
+              <Route
+                path="/"
+                element={<MainSection darkMode={darkMode} />}
+              />
+              <Route
+                path="/chat/:chatId"
+                element={<ChatPage darkMode={darkMode} />}
+              />
+            </Routes>
           </main>
         </div>
       </div>
