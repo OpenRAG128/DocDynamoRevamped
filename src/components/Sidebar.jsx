@@ -304,7 +304,7 @@ export default function Sidebar({ darkMode, collapsed }) {
             >
               <AnimatedList key={cycle} delay={2000} className="space-y-2">
                 <div
-                  className={`w-full px-2 py-1 rounded-xl backdrop-blur-xl border
+                  className={`w-full px-2 py-2 rounded-xl backdrop-blur-xl border
       ${darkMode
                       ? "bg-white/10 border-white/25 text-gray-200"
                       : "bg-black/10 border-black/25 text-gray-800"}
@@ -315,7 +315,7 @@ export default function Sidebar({ darkMode, collapsed }) {
 
                 <div
 
-                  className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl font-medium border
+                  className={`w-full px-2 py-2 rounded-xl backdrop-blur-xl font-medium border
       ${darkMode
                       ? "bg-white/10 border-white/25 text-purple-300"
                       : "bg-black/10 border-black/25 text-purple-700"}
@@ -326,7 +326,7 @@ export default function Sidebar({ darkMode, collapsed }) {
                 </div>
 
                 <div
-                  className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl border
+                  className={`w-full px-2 py-2 rounded-xl backdrop-blur-xl border
       ${darkMode
                       ? "bg-white/10 border-white/25 text-gray-300"
                       : "bg-black/10 border-black/25 text-gray-700"}
