@@ -218,7 +218,7 @@ export default function MainSection({ darkMode }) {
                       </p>
                       {selectedFiles &&
                         selectedFiles.map((file) => {
-                          return <p className='text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate max-w-11/12'>
+                          return <p className="text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate w-full max-w-xs" title={file.name}>
                             {file.name}
                           </p>
                         })
@@ -330,16 +330,16 @@ export default function MainSection({ darkMode }) {
 
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-1">
-                      {error ? 
+                      {error ?
                         (
                           <p className='text-red-500 text-xs text-wrap mt-2 px-2'>
                             {error}
                           </p>
                         )
-                        : 
-                          (<span className="text-xs text-text/50">
-                            CTRL + V to paste text or links
-                          </span>)
+                        :
+                        (<span className="text-xs text-text/50">
+                          CTRL + V to paste text or links
+                        </span>)
                       }
 
                       {/* Send Button */}
