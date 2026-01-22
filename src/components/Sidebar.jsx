@@ -159,102 +159,109 @@ export default function Sidebar({ darkMode, collapsed, main }) {
               </button>}
 
               {/* Chat History */}
-              <div className="mt-3 space-y-1 max-h-64 overflow-y-auto">
-                {chats.map((chat) => (
-                  <div key={chat.id} className="relative group">
-                    <button
-                      onClick={() => window.location.href = `/chat/${chat.id}`}
-                      className={`flex items-start gap-2 w-full px-4 py-2 rounded-md text-sm transition-colors text-left ${darkMode
-                        ? "text-gray-300 hover:bg-gray-800"
-                        : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                    >
-                      <MessageCircle size={16} className="mt-0.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="truncate w-11/12">{chat.title}</p>
-                        <p className={`text-xs mt-0.5 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
-                          {new Date(chat.timestamp).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </button>
-
-                    {/* Menu Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setMenuPosition({
-                          top: rect.top + 20,
-                          left: rect.right - 7  // Position to the right of the button with 4px gap
-                        });
-                        setOpenMenuId(openMenuId === chat.id ? null : chat.id);
-                      }}
-                      className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${darkMode
-                        ? "hover:bg-gray-700 text-gray-400"
-                        : "hover:bg-gray-200 text-gray-600"
-                        }`}
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-
-                    {/* Context Menu - Rendered outside sidebar with fixed positioning */}
-                    {openMenuId === chat.id && (
-                      <div
-                        ref={menuRef}
-                        style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
-                        className={`fixed w-48 rounded-lg shadow-lg border z-50 py-1 ${darkMode
-                          ? "bg-gray-800 border-gray-700"
-                          : "bg-white border-gray-200"
+              {chats.length != 0 ?
+                <div className="mt-3 space-y-1 max-h-64 overflow-y-auto">
+                  {chats.map((chat) => (
+                    <div key={chat.id} className="relative group">
+                      <button
+                        onClick={() => window.location.href = `/chat/${chat.id}`}
+                        className={`flex items-start gap-2 w-full px-4 py-2 rounded-md text-sm transition-colors text-left ${darkMode
+                          ? "text-gray-300 hover:bg-gray-800"
+                          : "text-gray-700 hover:bg-gray-100"
                           }`}
                       >
-                        <button
-                          onClick={() => handleRenameChat(chat.id)}
-                          className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
-                            ? "text-gray-300 hover:bg-gray-700"
-                            : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                        >
-                          <Edit3 size={16} />
-                          Rename chat
-                        </button>
+                        <MessageCircle size={16} className="mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate w-11/12">{chat.title}</p>
+                          <p className={`text-xs mt-0.5 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                            {new Date(chat.timestamp).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </button>
 
-                        <button
-                          onClick={() => handleShareChat(chat.id)}
-                          className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
-                            ? "text-gray-300 hover:bg-gray-700"
-                            : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                        >
-                          <Share2 size={16} />
-                          Share chat
-                        </button>
+                      {/* Menu Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setMenuPosition({
+                            top: rect.top + 20,
+                            left: rect.right - 7  // Position to the right of the button with 4px gap
+                          });
+                          setOpenMenuId(openMenuId === chat.id ? null : chat.id);
+                        }}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${darkMode
+                          ? "hover:bg-gray-700 text-gray-400"
+                          : "hover:bg-gray-200 text-gray-600"
+                          }`}
+                      >
+                        <MoreVertical size={16} />
+                      </button>
 
-                        <button
-                          onClick={() => handleResetChat(chat.id)}
-                          className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
-                            ? "text-gray-300 hover:bg-gray-700"
-                            : "text-gray-700 hover:bg-gray-100"
+                      {/* Context Menu - Rendered outside sidebar with fixed positioning */}
+                      {openMenuId === chat.id && (
+                        <div
+                          ref={menuRef}
+                          style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
+                          className={`fixed w-48 rounded-lg shadow-lg border z-50 py-1 ${darkMode
+                            ? "bg-gray-800 border-gray-700"
+                            : "bg-white border-gray-200"
                             }`}
                         >
-                          <RotateCcw size={16} />
-                          Reset chat
-                        </button>
+                          <button
+                            onClick={() => handleRenameChat(chat.id)}
+                            className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                              ? "text-gray-300 hover:bg-gray-700"
+                              : "text-gray-700 hover:bg-gray-100"
+                              }`}
+                          >
+                            <Edit3 size={16} />
+                            Rename chat
+                          </button>
 
-                        <button
-                          onClick={() => handleDeleteChat(chat.id)}
-                          className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
-                            ? "text-red-400 hover:bg-gray-700"
-                            : "text-red-600 hover:bg-gray-100"
-                            }`}
-                        >
-                          <Trash2 size={16} />
-                          Delete chat
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                          <button
+                            onClick={() => handleShareChat(chat.id)}
+                            className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                              ? "text-gray-300 hover:bg-gray-700"
+                              : "text-gray-700 hover:bg-gray-100"
+                              }`}
+                          >
+                            <Share2 size={16} />
+                            Share chat
+                          </button>
+
+                          <button
+                            onClick={() => handleResetChat(chat.id)}
+                            className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                              ? "text-gray-300 hover:bg-gray-700"
+                              : "text-gray-700 hover:bg-gray-100"
+                              }`}
+                          >
+                            <RotateCcw size={16} />
+                            Reset chat
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteChat(chat.id)}
+                            className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                              ? "text-red-400 hover:bg-gray-700"
+                              : "text-red-600 hover:bg-gray-100"
+                              }`}
+                          >
+                            <Trash2 size={16} />
+                            Delete chat
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div> :
+                <div className="mt-3 space-y-1 max-h-64">
+                  <p className={`text-xs mt-0.5 text-center ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                    No Previous Chats
+                  </p>
+                </div>
+              }
             </div>
 
             {/* Tools */}
