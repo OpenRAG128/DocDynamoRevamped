@@ -16,7 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-export default function Sidebar({ darkMode, collapsed }) {
+export default function Sidebar({ darkMode, collapsed, main }) {
   const [cycle, setCycle] = useState(0);
   const [chats, setChats] = useState([]);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -88,7 +88,7 @@ export default function Sidebar({ darkMode, collapsed }) {
   };
   return (
     <aside
-      className={`h-full flex border-r font-family-sans drop-shadow-xs flex-col justify-between transition-all duration-200
+      className={`hidden md:flex h-full border-r font-family-sans drop-shadow-xs flex-col justify-between transition-all duration-200
       ${collapsed ? "w-16" : "w-64"}
       ${darkMode
           ? "bg-gray-900"
@@ -99,7 +99,7 @@ export default function Sidebar({ darkMode, collapsed }) {
         }
       `}
     >
-      <div>
+      <div className="flex-1 overflow-y-auto">
 
         {/* ================= COLLAPSED VIEW ================= */}
         {collapsed && (
@@ -147,7 +147,7 @@ export default function Sidebar({ darkMode, collapsed }) {
               >
                 Chats
               </p>
-              <button
+              {main && <button
                 className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${darkMode
                   ? "text-gray-300 hover:bg-gray-800"
                   : "text-gray-700 hover:bg-gray-100"
@@ -156,7 +156,7 @@ export default function Sidebar({ darkMode, collapsed }) {
               >
                 <PlusIcon size={18} />
                 Start new chat
-              </button>
+              </button>}
 
               {/* Chat History */}
               <div className="mt-3 space-y-1 max-h-64 overflow-y-auto">
@@ -164,14 +164,14 @@ export default function Sidebar({ darkMode, collapsed }) {
                   <div key={chat.id} className="relative group">
                     <button
                       onClick={() => window.location.href = `/chat/${chat.id}`}
-                      className={`flex items-start gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors text-left ${darkMode
+                      className={`flex items-start gap-2 w-full px-4 py-2 rounded-md text-sm transition-colors text-left ${darkMode
                         ? "text-gray-300 hover:bg-gray-800"
                         : "text-gray-700 hover:bg-gray-100"
                         }`}
                     >
-                      <MessageCircle size={16} className="mt-0.5 flex-shrink-0" />
+                      <MessageCircle size={16} className="mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="truncate">{chat.title}</p>
+                        <p className="truncate w-11/12">{chat.title}</p>
                         <p className={`text-xs mt-0.5 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
                           {new Date(chat.timestamp).toLocaleDateString()}
                         </p>

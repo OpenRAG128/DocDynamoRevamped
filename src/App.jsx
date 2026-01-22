@@ -10,7 +10,8 @@ export default function App() {
     const saved = localStorage.getItem('darkMode')
     if (saved !== null) return JSON.parse(saved)
     return window.matchMedia('(prefers-color-scheme: dark)').matches
-  })
+  });
+  const [main, setMain] = useState(false);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
@@ -34,17 +35,18 @@ export default function App() {
           <Sidebar
             darkMode={darkMode}
             collapsed={sidebarCollapsed}
+            main={main}
           />
 
           <main className="flex-1 overflow-y-auto">
             <Routes>
               <Route
                 path="/"
-                element={<MainSection darkMode={darkMode} />}
+                element={<MainSection darkMode={darkMode} setMain={setMain} />}
               />
               <Route
                 path="/chat/:chatId"
-                element={<ChatPage darkMode={darkMode} />}
+                element={<ChatPage darkMode={darkMode} setMain={setMain} />}
               />
             </Routes>
           </main>

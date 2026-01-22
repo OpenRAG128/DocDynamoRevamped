@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, SendHorizontalIcon } from 'lucide-react';
 
-export default function ChatPage({ darkMode }) {
+export default function ChatPage({ darkMode, setMain }) {
     const { chatId } = useParams();
     const navigate = useNavigate();
     const [chat, setChat] = useState(null);
@@ -10,6 +10,7 @@ export default function ChatPage({ darkMode }) {
     const [input, setInput] = useState('');
 
     useEffect(() => {
+        setMain(true);
         try {
             const savedChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
             const found = savedChats.find((c) => c.id === chatId);
@@ -123,12 +124,12 @@ export default function ChatPage({ darkMode }) {
                             </span>
                             <div
                                 className={`max-w-full rounded-2xl px-3 py-2 text-sm leading-relaxed ${m.role === 'user'
-                                        ? darkMode
-                                            ? 'bg-purple-600/80 text-white self-end'
-                                            : 'bg-purple-600 text-white self-end'
-                                        : darkMode
-                                            ? 'bg-gray-800 text-gray-100'
-                                            : 'bg-white text-gray-800 border border-gray-200'
+                                    ? darkMode
+                                        ? 'bg-purple-600/80 text-white self-end'
+                                        : 'bg-purple-600 text-white self-end'
+                                    : darkMode
+                                        ? 'bg-gray-800 text-gray-100'
+                                        : 'bg-white text-gray-800 border border-gray-200'
                                     }`}
                             >
                                 {m.text}
@@ -148,8 +149,8 @@ export default function ChatPage({ darkMode }) {
                                     type="button"
                                     onClick={() => setInput(label)}
                                     className={`px-3 py-1 rounded-full border text-xs cursor-pointer ${darkMode
-                                            ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-200'
-                                            : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
+                                        ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-200'
+                                        : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
                                         }`}
                                 >
                                     {label}

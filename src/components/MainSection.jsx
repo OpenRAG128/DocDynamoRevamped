@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, MessageSquare, FileText, Link, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
 import {
@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 import Footer from './Footer.jsx';
 
-export default function MainSection({ darkMode }) {
+export default function MainSection({ darkMode, setMain }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [error, setError] = useState('');
@@ -23,6 +23,10 @@ export default function MainSection({ darkMode }) {
   const [chatMessage, setChatMessage] = useState('');
   const fileInputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    setMain(false);
+  }, []);
 
   const saveChat = (chatId, chatData) => {
     try {
