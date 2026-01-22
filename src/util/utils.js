@@ -1,6 +1,94 @@
 import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge"
+import { twMerge } from "tailwind-merge";
 
+// Tailwind utility
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
+
+// IndexedDB helpers for file storage
+export const initDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("DocDynamoDB", 1);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains("files")) {
+        db.createObjectStore("files", { keyPath: "id" });
+      }
+    };
+  });
+};
+
+export const saveFilesToIndexedDB = async (files, chatId) => {
+  try {
+    const db = await initDB();
+    const tx = db.transaction("files", "readwrite");
+    const store = tx.objectStore("files");
+
+    files.forEach((file) => {
+      store.add({
+        id: `${chatId}_${file.name}_${Date.now()}`,
+        chatId: chatId,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: file,
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (error) {
+    console.error("Error saving files to IndexedDB:", error);
+    throw error;
+  }
+};
+
+export const getFilesFromIndexedDB = async (chatId) => {
+  try {
+    const db = await initDB();
+    const tx = db.transaction("files", "readonly");
+    const store = tx.objectStore("files");
+
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const allFiles = request.result;
+        const chatFiles = allFiles.filter((f) => f.chatId === chatId);
+        resolve(chatFiles);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error("Error retrieving files from IndexedDB:", error);
+    throw error;
+  }
+};
+
+export const deleteFilesFromIndexedDB = async (chatId) => {
+  try {
+    const db = await initDB();
+    const tx = db.transaction("files", "readwrite");
+    const store = tx.objectStore("files");
+
+    const allFiles = await getFilesFromIndexedDB(chatId);
+    allFiles.forEach((file) => {
+      store.delete(file.id);
+    });
+
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (error) {
+    console.error("Error deleting files from IndexedDB:", error);
+    throw error;
+  }
+};

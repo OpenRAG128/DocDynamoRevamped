@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Upload, MessageSquare, FileText, Link, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
+import { saveFilesToIndexedDB } from '../util/utils.js';
 import {
   FaGraduationCap,
   FaFlask,
@@ -28,8 +29,14 @@ export default function MainSection({ darkMode, setMain }) {
     setMain(false);
   }, []);
 
-  const saveChat = (chatId, chatData) => {
+  const saveChat = async (chatId, chatData) => {
     try {
+      // Save files to IndexedDB
+      if (chatData.files.length > 0) {
+        await saveFilesToIndexedDB(chatData.files, chatId);
+      }
+
+      // Save chat metadata to localStorage
       const existingChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
       const newChat = {
         id: chatId,
@@ -348,7 +355,7 @@ export default function MainSection({ darkMode, setMain }) {
 
                       {/* Send Button */}
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           // Validation checks
                           if (selectedFiles.length === 0) {
                             setError('Please upload at least one file before starting a chat.');
@@ -364,7 +371,7 @@ export default function MainSection({ darkMode, setMain }) {
                           setError('');
 
                           const uniqueId = crypto.randomUUID();
-                          saveChat(uniqueId, {
+                          await saveChat(uniqueId, {
                             message: chatMessage,
                             role: selectedRole,
                             files: selectedFiles
