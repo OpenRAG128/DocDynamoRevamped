@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter as Router } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
+import ChatPage from './components/ChatPage'
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode')
     if (saved !== null) return JSON.parse(saved)
     return window.matchMedia('(prefers-color-scheme: dark)').matches
-  })
+  });
+  const [main, setMain] = useState(false);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
@@ -33,12 +35,20 @@ export default function App() {
           <Sidebar
             darkMode={darkMode}
             collapsed={sidebarCollapsed}
+            main={main}
           />
 
           <main className="flex-1 overflow-y-auto">
-            <MainSection
-              darkMode={darkMode}
-            />
+            <Routes>
+              <Route
+                path="/"
+                element={<MainSection darkMode={darkMode} setMain={setMain} />}
+              />
+              <Route
+                path="/chat/:chatId"
+                element={<ChatPage darkMode={darkMode} setMain={setMain} />}
+              />
+            </Routes>
           </main>
         </div>
       </div>

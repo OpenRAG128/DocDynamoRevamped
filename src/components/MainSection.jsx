@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, MessageSquare, FileText, Link, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
+import { saveFilesToIndexedDB } from '../util/utils.js';
 import {
   FaGraduationCap,
   FaFlask,
@@ -14,7 +15,7 @@ import {
 } from "react-icons/fa";
 import Footer from './Footer.jsx';
 
-export default function MainSection({ darkMode }) {
+export default function MainSection({ darkMode, setMain }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [error, setError] = useState('');
@@ -24,8 +25,18 @@ export default function MainSection({ darkMode }) {
   const fileInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  const saveChat = (chatId, chatData) => {
+  useEffect(() => {
+    setMain(false);
+  }, []);
+
+  const saveChat = async (chatId, chatData) => {
     try {
+      // Save files to IndexedDB
+      if (chatData.files.length > 0) {
+        await saveFilesToIndexedDB(chatData.files, chatId);
+      }
+
+      // Save chat metadata to localStorage
       const existingChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
       const newChat = {
         id: chatId,
@@ -218,7 +229,7 @@ export default function MainSection({ darkMode }) {
                       </p>
                       {selectedFiles &&
                         selectedFiles.map((file) => {
-                          return <p className='text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate max-w-full'>
+                          return <p className="text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate w-full max-w-xs" title={file.name}>
                             {file.name}
                           </p>
                         })
@@ -330,21 +341,21 @@ export default function MainSection({ darkMode }) {
 
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-1">
-                      {error ? 
+                      {error ?
                         (
                           <p className='text-red-500 text-xs text-wrap mt-2 px-2'>
                             {error}
                           </p>
                         )
-                        : 
-                          (<span className="text-xs text-text/50">
-                            CTRL + V to paste text or links
-                          </span>)
+                        :
+                        (<span className="text-xs text-text/50">
+                          CTRL + V to paste text or links
+                        </span>)
                       }
 
                       {/* Send Button */}
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           // Validation checks
                           if (selectedFiles.length === 0) {
                             setError('Please upload at least one file before starting a chat.');
@@ -360,7 +371,7 @@ export default function MainSection({ darkMode }) {
                           setError('');
 
                           const uniqueId = crypto.randomUUID();
-                          saveChat(uniqueId, {
+                          await saveChat(uniqueId, {
                             message: chatMessage,
                             role: selectedRole,
                             files: selectedFiles

@@ -1,5 +1,5 @@
 import { Sun, Moon, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import logo from'./../../public/logo.svg';
+import logo from '../assets/logo.svg';
 
 export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar }) {
   return (
