@@ -65,6 +65,10 @@ export default function Sidebar({ darkMode, collapsed }) {
     setOpenMenuId(null);
   };
 
+  const glassBase =
+  "relative overflow-hidden backdrop-blur-xl border shadow-lg after:absolute after:inset-0 after:bg-gradient-to-tr after:from-white/30 after:to-transparent after:opacity-30 after:pointer-events-none";
+
+
   const handleShareChat = (chatId) => {
     alert('Share functionality coming soon!');
     setOpenMenuId(null);
@@ -304,36 +308,39 @@ export default function Sidebar({ darkMode, collapsed }) {
             >
               <AnimatedList key={cycle} delay={2000} className="space-y-2">
                 <div
-                  className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl border
-      ${darkMode
-                      ? "bg-white/10 border-white/25 text-gray-200"
-                      : "bg-black/10 border-black/25 text-gray-800"}
-    `}
-                >
-                  Know what's better than Static Documents?
-                </div>
+  className={`${glassBase} w-full px-4 py-3 rounded-xl
+  ${darkMode
+    ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200"
+    : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
+  }`}
+>
+  Know what's better than Static Documents?
+</div>
+
+
 
                 <div
+  className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium
+  ${darkMode
+    ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300"
+    : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800"
+  }`}
+>
+  DocDynamo
+</div>
 
-                  className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl font-medium border
-      ${darkMode
-                      ? "bg-white/10 border-white/25 text-purple-300"
-                      : "bg-black/10 border-black/25 text-purple-700"}
-        `}
-
-                >
-                  DocDynamo
-                </div>
 
                 <div
-                  className={`w-full px-4 py-3 rounded-xl backdrop-blur-xl border
-      ${darkMode
-                      ? "bg-white/10 border-white/25 text-gray-300"
-                      : "bg-black/10 border-black/25 text-gray-700"}
-    `}
-                >
-                  Coz it makes them talk
-                </div>
+  className={`${glassBase} w-full px-4 py-3 rounded-xl
+  ${darkMode
+    ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300"
+    : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
+  }`}
+>
+  Coz it makes them talk
+</div>
+
+
               </AnimatedList>
 
 

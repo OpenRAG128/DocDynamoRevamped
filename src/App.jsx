@@ -29,7 +29,7 @@ export default function App() {
           toggleSidebar={() => setSidebarCollapsed(prev => !prev)}
         />
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden ">
           <Sidebar
             darkMode={darkMode}
             collapsed={sidebarCollapsed}
