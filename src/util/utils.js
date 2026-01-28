@@ -74,11 +74,18 @@ export const getFilesFromIndexedDB = async (chatId) => {
 
 export const deleteFilesFromIndexedDB = async (chatId) => {
   try {
+    // First, get all files for this chat
+    const allFiles = await getFilesFromIndexedDB(chatId);
+
+    if (allFiles.length === 0) {
+      return; // Nothing to delete
+    }
+
+    // Then create a new transaction to delete them
     const db = await initDB();
     const tx = db.transaction("files", "readwrite");
     const store = tx.objectStore("files");
 
-    const allFiles = await getFilesFromIndexedDB(chatId);
     allFiles.forEach((file) => {
       store.delete(file.id);
     });
