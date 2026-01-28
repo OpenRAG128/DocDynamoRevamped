@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, SendHorizontalIcon } from 'lucide-react';
+import { ArrowLeft, FileText, SendHorizontalIcon, ZoomIn, ZoomOut, Download, Search, MousePointer } from 'lucide-react';
 import { getFilesFromIndexedDB } from '@/util/utils.js';
 
 export default function ChatPage({ darkMode, setMain }) {
@@ -12,6 +12,9 @@ export default function ChatPage({ darkMode, setMain }) {
     const [chatFiles, setChatFiles] = useState([]);
     const [selectedFileIndex, setSelectedFileIndex] = useState(0);
     const [previewUrl, setPreviewUrl] = useState('');
+    const [zoom, setZoom] = useState(100);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages] = useState(4); // This would be dynamic in a real implementation
 
     useEffect(() => {
         setMain(true);
@@ -94,6 +97,14 @@ export default function ChatPage({ darkMode, setMain }) {
         setInput('');
     };
 
+    const handleDownload = () => {
+        if (!previewUrl || !chatFiles[selectedFileIndex]) return;
+        const link = document.createElement('a');
+        link.href = previewUrl;
+        link.download = chatFiles[selectedFileIndex].name;
+        link.click();
+    };
+
     if (!chat) {
         return (
             <div className={`flex flex-col h-full items-center justify-center ${darkMode ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
@@ -120,7 +131,7 @@ export default function ChatPage({ darkMode, setMain }) {
                     <button
                         type="button"
                         onClick={() => navigate('/')}
-                        className={`p-1.5 rounded-md cursor-pointer transition-colors ${darkMode ? 'hover:bg-gray-800 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}`}
+                        className={`p-1.5 rounded-md transition-colors ${darkMode ? 'hover:bg-gray-800 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}`}
                     >
                         <ArrowLeft size={18} />
                     </button>
@@ -129,7 +140,7 @@ export default function ChatPage({ darkMode, setMain }) {
                         <select
                             value={selectedFileIndex}
                             onChange={(e) => setSelectedFileIndex(Number(e.target.value))}
-                            className={`text-sm rounded-lg border px-3 py-1.5 outline-none cursor-pointer transition-colors ${darkMode
+                            className={`text-sm rounded-lg border px-3 py-1.5 outline-none transition-colors ${darkMode
                                 ? 'border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-750'
                                 : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                                 }`}
@@ -148,30 +159,88 @@ export default function ChatPage({ darkMode, setMain }) {
                 </div>
 
                 {/* Document preview */}
-                <div className="flex-1 overflow-hidden p-4">
-                    <div className={`h-full w-full rounded-lg border overflow-hidden ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-50'}`}>
+                <div className="flex-1 overflow-hidden relative flex flex-col">
+                    <div className="flex-1 overflow-auto">
                         {previewUrl ? (
                             chatFiles[selectedFileIndex]?.type?.startsWith('image/') ? (
-                                <img
-                                    src={previewUrl}
-                                    alt={chatFiles[selectedFileIndex]?.name || 'Document preview'}
-                                    className="w-full h-full object-contain"
-                                />
+                                <div className="h-full w-full flex items-center justify-center p-4">
+                                    <img
+                                        src={previewUrl}
+                                        alt={chatFiles[selectedFileIndex]?.name || 'Document preview'}
+                                        className="max-w-full max-h-full object-contain"
+                                        style={{ transform: `scale(${zoom / 100})` }}
+                                    />
+                                </div>
                             ) : (
                                 <iframe
                                     title="Document preview"
-                                    src={previewUrl}
-                                    className="w-full h-full"
+                                    src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                    className="w-full h-full border-0"
+                                    style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center top' }}
                                 />
                             )
                         ) : (
                             <div className="h-full w-full flex items-center justify-center p-6">
-                                <p className={`max-w-xs text-center text-sm leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <p className={`text-center text-sm leading-relaxed max-w-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                     No file preview available yet.
                                 </p>
                             </div>
                         )}
                     </div>
+
+                    {/* Floating toolbar */}
+                    {previewUrl && (
+                        <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm border ${darkMode ? 'bg-gray-800/90 border-gray-700/50' : 'bg-white/90 border-gray-200/50'}`}>
+                            <button
+                                type="button"
+                                onClick={() => setZoom(Math.max(50, zoom - 10))}
+                                className={`p-1.5 rounded transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                                title="Zoom out"
+                            >
+                                <ZoomOut size={16} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setZoom(Math.min(200, zoom + 10))}
+                                className={`p-1.5 rounded transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                                title="Zoom in"
+                            >
+                                <ZoomIn size={16} />
+                            </button>
+
+                            <div className={`w-px h-5 mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+                            <div className={`flex items-center gap-1.5 px-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                <input
+                                    type="number"
+                                    value={currentPage}
+                                    onChange={(e) => setCurrentPage(Math.max(1, Math.min(totalPages, Number(e.target.value) || 1)))}
+                                    className={`w-8 text-center bg-transparent border-none outline-none ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                                    min="1"
+                                    max={totalPages}
+                                />
+                                <span>of {totalPages}</span>
+                            </div>
+
+                            <div className={`w-px h-5 mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+
+                            <button
+                                type="button"
+                                onClick={handleDownload}
+                                className={`p-1.5 rounded transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                                title="Download"
+                            >
+                                <Download size={16} />
+                            </button>
+                            <button
+                                type="button"
+                                className={`p-1.5 rounded transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
 
