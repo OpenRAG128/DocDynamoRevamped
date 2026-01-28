@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, SendHorizontalIcon } from 'lucide-react';
+import { getFilesFromIndexedDB } from '@/util/utils.js';
 
 export default function ChatPage({ darkMode, setMain }) {
     const { chatId } = useParams();
@@ -8,29 +9,79 @@ export default function ChatPage({ darkMode, setMain }) {
     const [chat, setChat] = useState(null);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
+    const [chatFiles, setChatFiles] = useState([]);
+    const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+    const [previewUrl, setPreviewUrl] = useState('');
 
     useEffect(() => {
         setMain(true);
         try {
             const savedChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
             const found = savedChats.find((c) => c.id === chatId);
-            setChat(found || null);
 
-            if (found) {
-                setMessages([
-                    { id: 'user-initial', role: 'user', text: found.message },
-                    {
-                        id: 'assistant-welcome',
-                        role: 'assistant',
-                        text:
-                            'This is a preview chat layout. In a full version, AI answers and document-grounded insights would appear here.',
-                    },
-                ]);
+            if (!found) {
+                // Chat not found, navigate to home immediately
+                navigate('/');
+                return;
             }
+
+            setChat(found);
+            setMessages([
+                { id: 'user-initial', role: 'user', text: found.message },
+                {
+                    id: 'assistant-welcome',
+                    role: 'assistant',
+                    text:
+                        'This is a preview chat layout. In a full version, AI answers and document-grounded insights would appear here.',
+                },
+            ]);
         } catch (error) {
             console.error('Error loading chat:', error);
+            navigate('/');
         }
+    }, [chatId, navigate]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadFiles = async () => {
+            try {
+                const files = await getFilesFromIndexedDB(chatId);
+                if (isMounted) {
+                    setChatFiles(files || []);
+                    setSelectedFileIndex(0);
+                }
+            } catch (error) {
+                console.error('Error loading files from IndexedDB:', error);
+            }
+        };
+
+        if (chatId) {
+            loadFiles();
+        }
+
+        return () => {
+            isMounted = false;
+        };
     }, [chatId]);
+
+    useEffect(() => {
+        if (!chatFiles.length) {
+            setPreviewUrl('');
+            return undefined;
+        }
+
+        const current = chatFiles[selectedFileIndex];
+        const blob = current?.data instanceof Blob
+            ? current.data
+            : new Blob([current?.data ?? ''], { type: current?.type || 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(url);
+
+        return () => {
+            URL.revokeObjectURL(url);
+        };
+    }, [chatFiles, selectedFileIndex]);
 
     const handleSend = () => {
         if (!input.trim()) return;
@@ -64,42 +115,62 @@ export default function ChatPage({ darkMode, setMain }) {
             <section
                 className={`flex flex-col flex-[1.2] border-r ${darkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}
             >
-                <div className="flex items-center justify-between px-4 py-3 border-b border-inherit/60">
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => navigate('/')}
-                            className={`p-1.5 rounded-md cursor-pointer ${darkMode ? 'hover:bg-gray-800 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}`}
+                {/* Header */}
+                <div className={`flex items-center justify-between px-4 py-3 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/')}
+                        className={`p-1.5 rounded-md cursor-pointer transition-colors ${darkMode ? 'hover:bg-gray-800 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}`}
+                    >
+                        <ArrowLeft size={18} />
+                    </button>
+
+                    {chatFiles.length > 1 ? (
+                        <select
+                            value={selectedFileIndex}
+                            onChange={(e) => setSelectedFileIndex(Number(e.target.value))}
+                            className={`text-sm rounded-lg border px-3 py-1.5 outline-none cursor-pointer transition-colors ${darkMode
+                                ? 'border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-750'
+                                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                                }`}
                         >
-                            <ArrowLeft size={18} />
-                        </button>
-                        <div className="flex flex-col">
-                            <span className="text-xs font-medium text-text/60">Document</span>
-                            <span className="text-sm font-semibold truncate max-w-xs text-text">{chat.files?.[0] || 'Uploaded file'}</span>
-                        </div>
-                    </div>
-                    <span className="text-xs text-text/50 hidden sm:inline">Preview only</span>
+                            {chatFiles.map((file, index) => (
+                                <option key={file.id || `${file.name}-${index}`} value={index}>
+                                    {file.name}
+                                </option>
+                            ))}
+                        </select>
+                    ) : (
+                        <span className={`text-sm font-medium truncate max-w-xs ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {chatFiles?.[0]?.name || chat.files?.[0] || 'Uploaded file'}
+                        </span>
+                    )}
                 </div>
 
-                {/* Fake document viewer */}
+                {/* Document preview */}
                 <div className="flex-1 overflow-hidden p-4">
-                    <div
-                        className={`h-full w-full rounded-xl border text-xs sm:text-sm flex flex-col gap-3 p-4 ${darkMode ? 'border-gray-700 bg-gray-900 text-gray-200' : 'border-gray-200 bg-gray-50 text-gray-700'}`}
-                    >
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium">
-                                <FileText size={16} className="text-accent" />
-                                <span className="truncate max-w-[200px] sm:max-w-[320px]">{chat.files?.[0] || 'Your document'}</span>
+                    <div className={`h-full w-full rounded-lg border overflow-hidden ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-50'}`}>
+                        {previewUrl ? (
+                            chatFiles[selectedFileIndex]?.type?.startsWith('image/') ? (
+                                <img
+                                    src={previewUrl}
+                                    alt={chatFiles[selectedFileIndex]?.name || 'Document preview'}
+                                    className="w-full h-full object-contain"
+                                />
+                            ) : (
+                                <iframe
+                                    title="Document preview"
+                                    src={previewUrl}
+                                    className="w-full h-full"
+                                />
+                            )
+                        ) : (
+                            <div className="h-full w-full flex items-center justify-center p-6">
+                                <p className={`max-w-xs text-center text-sm leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    No file preview available yet.
+                                </p>
                             </div>
-                            <span className="text-[10px] sm:text-xs text-text/40">Static preview</span>
-                        </div>
-
-                        <div className="flex-1 rounded-lg border border-dashed border-current/15 bg-gradient-to-br from-background to-transparent flex items-center justify-center">
-                            <p className="max-w-xs text-center leading-relaxed text-text/60">
-                                A full version of DocDynamo would render your PDF or document here so
-                                you can scroll while chatting.
-                            </p>
-                        </div>
+                        )}
                     </div>
                 </div>
             </section>

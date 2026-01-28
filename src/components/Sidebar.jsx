@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatedList } from "./AnimatedList.jsx";
 import {
   MessageCircle,
@@ -15,8 +16,11 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
+import { deleteFilesFromIndexedDB } from "@/util/utils.js";
 
 export default function Sidebar({ darkMode, collapsed, main }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [cycle, setCycle] = useState(0);
   const [chats, setChats] = useState([]);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -82,9 +86,16 @@ export default function Sidebar({ darkMode, collapsed, main }) {
     setOpenMenuId(null);
   };
 
-  const handleDeleteChat = (chatId) => {
+  const handleDeleteChat = async (chatId) => {
     if (confirm('Are you sure you want to delete this chat?')) {
+      await deleteFilesFromIndexedDB(chatId);
       const updatedChats = chats.filter(chat => chat.id !== chatId);
+
+      // Check if we're currently viewing the deleted chat or if no chats remain
+      const isViewingDeletedChat = location.pathname === `/chat/${chatId}`;
+      if (isViewingDeletedChat || updatedChats.length === 0) {
+        navigate('/');
+      }
       setChats(updatedChats);
       localStorage.setItem('docDynamoChats', JSON.stringify(updatedChats));
     }
