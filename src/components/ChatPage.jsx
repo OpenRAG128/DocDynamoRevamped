@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, SendHorizontalIcon, ZoomIn, ZoomOut, Download, Search, MousePointer } from 'lucide-react';
 import { getFilesFromIndexedDB } from '@/util/utils.js';
+import PdfToolbar from '@/components/PdfToolbar.jsx';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.mjs',
+    import.meta.url
+).href;
+
 
 export default function ChatPage({ darkMode, setMain }) {
     const { chatId } = useParams();
@@ -14,7 +25,7 @@ export default function ChatPage({ darkMode, setMain }) {
     const [previewUrl, setPreviewUrl] = useState('');
     const [zoom, setZoom] = useState(100);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages] = useState(4); // This would be dynamic in a real implementation
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
         setMain(true);
@@ -71,6 +82,7 @@ export default function ChatPage({ darkMode, setMain }) {
     useEffect(() => {
         if (!chatFiles.length) {
             setPreviewUrl('');
+            setTotalPages(1);
             return undefined;
         }
 
@@ -80,6 +92,7 @@ export default function ChatPage({ darkMode, setMain }) {
             : new Blob([current?.data ?? ''], { type: current?.type || 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
         setPreviewUrl(url);
+        setCurrentPage(1);
 
         return () => {
             URL.revokeObjectURL(url);
@@ -96,6 +109,12 @@ export default function ChatPage({ darkMode, setMain }) {
         setMessages((prev) => [...prev, newMessage]);
         setInput('');
     };
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [totalPages]);
 
     const handleDownload = () => {
         if (!previewUrl || !chatFiles[selectedFileIndex]) return;
@@ -172,12 +191,32 @@ export default function ChatPage({ darkMode, setMain }) {
                                     />
                                 </div>
                             ) : (
-                                <iframe
-                                    title="Document preview"
-                                    src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                                    className="w-full h-full border-0"
-                                    style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center top' }}
-                                />
+                                <Document
+                                    file={previewUrl}
+                                    onLoadSuccess={({ numPages }) => {
+                                        setTotalPages(numPages);
+                                        setCurrentPage(1);
+                                    }}
+                                    loading={
+                                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            Loading PDF…
+                                        </p>
+                                    }
+                                    error={
+                                        <p className="text-sm text-red-500">
+                                            Failed to load PDF
+                                        </p>
+                                    }
+                                >
+                                    <Page
+                                        key={`page-${currentPage}-${zoom}`}
+                                        pageNumber={currentPage}
+                                        scale={zoom / 100}
+                                        renderTextLayer={false}
+                                        renderAnnotationLayer={false}
+                                    />
+
+                                </Document>
                             )
                         ) : (
                             <div className="h-full w-full flex items-center justify-center p-6">
@@ -188,59 +227,21 @@ export default function ChatPage({ darkMode, setMain }) {
                         )}
                     </div>
 
-                    {/* Floating toolbar */}
-                    {previewUrl && (
-                        <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm border ${darkMode ? 'bg-gray-800/90 border-gray-700/50' : 'bg-white/90 border-gray-200/50'}`}>
-                            <button
-                                type="button"
-                                onClick={() => setZoom(Math.max(50, zoom - 10))}
-                                className={`p-1.5 rounded transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-                                title="Zoom out"
-                            >
-                                <ZoomOut size={16} />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setZoom(Math.min(200, zoom + 10))}
-                                className={`p-1.5 rounded transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-                                title="Zoom in"
-                            >
-                                <ZoomIn size={16} />
-                            </button>
+                    {/* Pdf Toolbar */}
+                    <PdfToolbar
+                        visible={!!previewUrl}
+                        zoom={zoom}
+                        setZoom={setZoom}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        totalPages={totalPages}
+                        onDownload={handleDownload}
+                        onSearch={() => {
+                            console.log('Search clicked'); // wire later
+                        }}
+                        darkMode={darkMode}
+                    />
 
-                            <div className={`w-px h-5 mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-                            <div className={`flex items-center gap-1.5 px-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                <input
-                                    type="number"
-                                    value={currentPage}
-                                    onChange={(e) => setCurrentPage(Math.max(1, Math.min(totalPages, Number(e.target.value) || 1)))}
-                                    className={`w-8 text-center bg-transparent border-none outline-none ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-                                    min="1"
-                                    max={totalPages}
-                                />
-                                <span>of {totalPages}</span>
-                            </div>
-
-                            <div className={`w-px h-5 mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-
-                            <button
-                                type="button"
-                                onClick={handleDownload}
-                                className={`p-1.5 rounded transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-                                title="Download"
-                            >
-                                <Download size={16} />
-                            </button>
-                            <button
-                                type="button"
-                                className={`p-1.5 rounded transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
-                                title="Search"
-                            >
-                                <Search size={16} />
-                            </button>
-                        </div>
-                    )}
                 </div>
             </section>
 
