@@ -7,11 +7,8 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url
-).href;
+// Set up PDF.js worker - use unpkg CDN which mirrors npm packages exactly
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 
 export default function ChatPage({ darkMode, setMain }) {
@@ -87,9 +84,17 @@ export default function ChatPage({ darkMode, setMain }) {
         }
 
         const current = chatFiles[selectedFileIndex];
+
+        // Debug: log the file data structure
+        console.log('Current file:', current);
+        console.log('Data type:', typeof current?.data, current?.data instanceof Blob);
+
         const blob = current?.data instanceof Blob
             ? current.data
             : new Blob([current?.data ?? ''], { type: current?.type || 'application/octet-stream' });
+
+        console.log('Created blob:', blob, 'size:', blob.size, 'type:', blob.type);
+
         const url = URL.createObjectURL(blob);
         setPreviewUrl(url);
         setCurrentPage(1);
