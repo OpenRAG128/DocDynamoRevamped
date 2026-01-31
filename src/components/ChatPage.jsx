@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, SendHorizontalIcon, ZoomIn, ZoomOut, Download, Search, MousePointer } from 'lucide-react';
 import { getFilesFromIndexedDB } from '@/util/utils.js';
@@ -23,6 +23,167 @@ export default function ChatPage({ darkMode, setMain }) {
     const [zoom, setZoom] = useState(100);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [pdfTextPages, setPdfTextPages] = useState([]);
+    const [searchMatches, setSearchMatches] = useState([]);
+    const [activeMatchIndex, setActiveMatchIndex] = useState(0);
+    const scrollContainerRef = useRef(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [pdfBaseWidth, setPdfBaseWidth] = useState(0);
+
+    // Track container width for responsive PDF sizing
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                // Account for padding (p-4 = 16px on each side)
+                setContainerWidth(entry.contentRect.width - 32);
+            }
+        });
+
+        observer.observe(container);
+        // Initial measurement
+        setContainerWidth(container.clientWidth - 32);
+
+        return () => observer.disconnect();
+    }, [previewUrl]); // Re-run when previewUrl changes to ensure ref is ready
+
+    // Calculate effective scale: fit to container width, then apply user zoom
+    const getEffectiveScale = () => {
+        if (!pdfBaseWidth || !containerWidth) return 1;
+        const fitScale = containerWidth / pdfBaseWidth;
+        return fitScale * (zoom / 100);
+    };
+
+    // Get width for Page component (more reliable than scale alone)
+    const getPageWidth = () => {
+        if (!containerWidth) return undefined;
+        return containerWidth * (zoom / 100);
+    };
+
+    // Scroll to a specific page
+    const scrollToPage = (pageNum) => {
+        const pageElement = document.getElementById(`pdf-page-${pageNum}`);
+        if (pageElement && scrollContainerRef.current) {
+            pageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    const extractPdfText = async (pdf) => {
+        const texts = [];
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const pageText = content.items.map((item) => item.str).join(' ');
+            texts.push({ page: i, text: pageText });
+        }
+
+        return texts;
+    };
+
+    const handleSearch = (query) => {
+        // Clear search if empty query
+        if (!query || !query.trim()) {
+            setSearchQuery('');
+            setSearchMatches([]);
+            setActiveMatchIndex(0);
+            return;
+        }
+
+        setSearchQuery(query);
+
+        const found = [];
+
+        pdfTextPages.forEach(({ page, text }) => {
+            let index = text.toLowerCase().indexOf(query.toLowerCase());
+            while (index !== -1) {
+                found.push({ page, index });
+                index = text.toLowerCase().indexOf(query.toLowerCase(), index + 1);
+            }
+        });
+
+        setSearchMatches(found);
+        setActiveMatchIndex(0);
+
+        // Scroll to the first match after a short delay to allow highlights to render
+        if (found.length > 0) {
+            setTimeout(() => {
+                const firstHighlight = document.querySelector('.pdf-highlight-overlay');
+                if (firstHighlight) {
+                    firstHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    // Fallback: scroll to the page containing the first match
+                    scrollToPage(found[0].page);
+                }
+            }, 200);
+        }
+    };
+
+    // Highlight search matches in the rendered PDF text layer
+    useEffect(() => {
+        // Small delay to ensure text layer is rendered
+        const timeout = setTimeout(() => {
+            // Remove any existing highlight overlays
+            document.querySelectorAll('.pdf-highlight-overlay').forEach(el => el.remove());
+
+            if (!searchQuery) return;
+
+            const textLayers = document.querySelectorAll('.react-pdf__Page__textContent');
+
+            textLayers.forEach((textLayer) => {
+                const spans = textLayer.querySelectorAll('span');
+
+                spans.forEach((span) => {
+                    const text = span.textContent;
+                    if (!text) return;
+
+                    const lowerText = text.toLowerCase();
+                    const lowerQuery = searchQuery.toLowerCase();
+                    let index = lowerText.indexOf(lowerQuery);
+
+                    while (index !== -1) {
+                        // Create a range for just the matching text
+                        const range = document.createRange();
+                        const textNode = span.firstChild;
+
+                        if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                            try {
+                                range.setStart(textNode, index);
+                                range.setEnd(textNode, index + searchQuery.length);
+
+                                const rect = range.getBoundingClientRect();
+                                const layerRect = textLayer.getBoundingClientRect();
+
+                                // Create highlight overlay
+                                const highlight = document.createElement('div');
+                                highlight.className = 'pdf-highlight-overlay';
+                                highlight.style.cssText = `
+                                    position: absolute;
+                                    left: ${rect.left - layerRect.left}px;
+                                    top: ${rect.top - layerRect.top}px;
+                                    width: ${rect.width}px;
+                                    height: ${rect.height}px;
+                                    background-color: rgba(255, 255, 0, 0.4);
+                                    pointer-events: none;
+                                    border-radius: 2px;
+                                `;
+                                textLayer.appendChild(highlight);
+                            } catch (e) {
+                                // Range error - skip this match
+                            }
+                        }
+
+                        index = lowerText.indexOf(lowerQuery, index + 1);
+                    }
+                });
+            });
+        }, 150);
+
+        return () => clearTimeout(timeout);
+    }, [searchQuery, totalPages, zoom]);
 
     useEffect(() => {
         setMain(true);
@@ -80,20 +241,14 @@ export default function ChatPage({ darkMode, setMain }) {
         if (!chatFiles.length) {
             setPreviewUrl('');
             setTotalPages(1);
+            setPdfBaseWidth(0);
             return undefined;
         }
 
         const current = chatFiles[selectedFileIndex];
-
-        // Debug: log the file data structure
-        console.log('Current file:', current);
-        console.log('Data type:', typeof current?.data, current?.data instanceof Blob);
-
         const blob = current?.data instanceof Blob
             ? current.data
             : new Blob([current?.data ?? ''], { type: current?.type || 'application/octet-stream' });
-
-        console.log('Created blob:', blob, 'size:', blob.size, 'type:', blob.type);
 
         const url = URL.createObjectURL(blob);
         setPreviewUrl(url);
@@ -148,7 +303,7 @@ export default function ChatPage({ darkMode, setMain }) {
         <div className={`flex h-full w-full ${darkMode ? 'bg-gray-950' : 'bg-gray-50'}`}>
             {/* Document column */}
             <section
-                className={`flex flex-col flex-[1.2] border-r ${darkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}
+                className={`flex flex-col w-0 flex-[1.2] border-r overflow-hidden ${darkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}
             >
                 {/* Header */}
                 <div className={`flex items-center justify-between px-4 py-3 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
@@ -183,11 +338,11 @@ export default function ChatPage({ darkMode, setMain }) {
                 </div>
 
                 {/* Document preview */}
-                <div className="flex-1 overflow-hidden relative flex flex-col">
-                    <div className="flex-1 overflow-auto">
+                <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
+                    <div ref={scrollContainerRef} className="flex-1 overflow-auto flex items-start justify-center p-4">
                         {previewUrl ? (
                             chatFiles[selectedFileIndex]?.type?.startsWith('image/') ? (
-                                <div className="h-full w-full flex items-center justify-center p-4">
+                                <div className="flex items-center justify-center">
                                     <img
                                         src={previewUrl}
                                         alt={chatFiles[selectedFileIndex]?.name || 'Document preview'}
@@ -198,9 +353,17 @@ export default function ChatPage({ darkMode, setMain }) {
                             ) : (
                                 <Document
                                     file={previewUrl}
-                                    onLoadSuccess={({ numPages }) => {
-                                        setTotalPages(numPages);
+                                    onLoadSuccess={async (pdf) => {
+                                        setTotalPages(pdf.numPages);
                                         setCurrentPage(1);
+
+                                        // Get the first page to determine base width
+                                        const firstPage = await pdf.getPage(1);
+                                        const viewport = firstPage.getViewport({ scale: 1 });
+                                        setPdfBaseWidth(viewport.width);
+
+                                        const textPages = await extractPdfText(pdf);
+                                        setPdfTextPages(textPages);
                                     }}
                                     loading={
                                         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -212,19 +375,23 @@ export default function ChatPage({ darkMode, setMain }) {
                                             Failed to load PDF
                                         </p>
                                     }
+                                    className="flex flex-col items-center gap-4"
                                 >
-                                    <Page
-                                        key={`page-${currentPage}-${zoom}`}
-                                        pageNumber={currentPage}
-                                        scale={zoom / 100}
-                                        renderTextLayer={false}
-                                        renderAnnotationLayer={false}
-                                    />
-
+                                    {Array.from({ length: totalPages }, (_, index) => (
+                                        <div key={`page-wrapper-${index + 1}`} id={`pdf-page-${index + 1}`}>
+                                            <Page
+                                                pageNumber={index + 1}
+                                                width={getPageWidth()}
+                                                renderTextLayer={true}
+                                                renderAnnotationLayer={false}
+                                                className="shadow-md"
+                                            />
+                                        </div>
+                                    ))}
                                 </Document>
                             )
                         ) : (
-                            <div className="h-full w-full flex items-center justify-center p-6">
+                            <div className="h-full w-full flex items-center justify-center">
                                 <p className={`text-center text-sm leading-relaxed max-w-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                     No file preview available yet.
                                 </p>
@@ -238,13 +405,17 @@ export default function ChatPage({ darkMode, setMain }) {
                         zoom={zoom}
                         setZoom={setZoom}
                         currentPage={currentPage}
-                        setCurrentPage={setCurrentPage}
+                        setCurrentPage={(page) => {
+                            setCurrentPage(page);
+                            scrollToPage(page);
+                        }}
                         totalPages={totalPages}
                         onDownload={handleDownload}
-                        onSearch={() => {
-                            console.log('Search clicked'); // wire later
-                        }}
+                        onSearch={handleSearch}
+                        searchQuery={searchQuery}
                         darkMode={darkMode}
+                        minZoom={50}
+                        maxZoom={200}
                     />
 
                 </div>

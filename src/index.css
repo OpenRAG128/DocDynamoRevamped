@@ -176,4 +176,12 @@
         --scrollbar-thumb: rgba(75, 85, 99, 0.7);
         --scrollbar-thumb-hover: rgba(107, 114, 128, 0.9);
     }
+
+    .react-pdf__Page__textContent {
+        position: relative;
+    }
+
+    .react-pdf__Page__textContent span {
+        position: relative;
+    }
 }
