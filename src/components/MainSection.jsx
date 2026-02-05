@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, MessageSquare, FileText, Link, SendHorizontalIcon } from 'lucide-react';
+import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
 import { saveFilesToIndexedDB } from '../util/utils.js';
@@ -166,13 +166,13 @@ export default function MainSection({ darkMode, setMain }) {
             <div className='pb-4 sm:pb-6 flex flex-col justify-center items-center gap-2'>
               <h2 className='text-text text-center font-family-display text-xl sm:text-2xl font-bold px-4'>Chat with any type of file</h2>
               <div className='flex flex-wrap justify-center font-family-display items-center gap-2 text-xs sm:text-sm text-text/60'>
-                <span className='flex items-center gap-1'><FileText size={14} /> PDF</span>
+                <span className='flex items-center gap-1'><FileType size={14} className="text-blue-500" /> DOCX</span>
                 <span>•</span>
-                <span className='flex items-center gap-1'><FileText size={14} /> DOCX</span>
+                <span className='flex items-center gap-1'><FileText size={14} className="text-red-500" /> PDF</span>
                 <span>•</span>
-                <span className='flex items-center gap-1'><FileText size={14} /> Word</span>
+                <span className='flex items-center gap-1'><File size={14} className="text-blue-600" /> Word</span>
                 <span>•</span>
-                <span className='flex items-center gap-1'><Link size={14} /> URL</span>
+                <span className='flex items-center gap-1'><FileType2 size={14} className="text-gray-500" /> TXT</span>
               </div>
             </div>
 
