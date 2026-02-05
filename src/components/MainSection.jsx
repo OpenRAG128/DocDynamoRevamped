@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Upload, MessageSquare, FileText, Link, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
+import FeaturesSection from './FeaturesSection.jsx';
 import { saveFilesToIndexedDB } from '../util/utils.js';
 import {
   FaGraduationCap,
@@ -396,6 +397,7 @@ export default function MainSection({ darkMode, setMain }) {
             authorImage="/avatar.jpg"
             darkMode={darkMode}
           />
+          <FeaturesSection darkMode={darkMode} />
           <Footer />
         </div>
       </div>
