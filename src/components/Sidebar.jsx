@@ -146,13 +146,13 @@ export default function Sidebar({ darkMode, collapsed, main }) {
             {/* Chats */}
             <div className="px-4 mt-4">
               <p
-                className={`text-sm mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"
+                className={`text-base mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"
                   }`}
               >
                 Chats
               </p>
               {main && <button
-                className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${darkMode
+                className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode
                   ? "text-gray-300 hover:bg-gray-800"
                   : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -214,7 +214,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
                         >
                           <button
                             onClick={() => handleRenameChat(chat.id)}
-                            className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                            className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer text-sm text-left transition-colors ${darkMode
                               ? "text-gray-300 hover:bg-gray-700"
                               : "text-gray-700 hover:bg-gray-100"
                               }`}
@@ -225,7 +225,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
 
                           <button
                             onClick={() => handleShareChat(chat.id)}
-                            className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                            className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer text-sm text-left transition-colors ${darkMode
                               ? "text-gray-300 hover:bg-gray-700"
                               : "text-gray-700 hover:bg-gray-100"
                               }`}
@@ -236,7 +236,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
 
                           <button
                             onClick={() => handleResetChat(chat.id)}
-                            className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                            className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer text-sm text-left transition-colors ${darkMode
                               ? "text-gray-300 hover:bg-gray-700"
                               : "text-gray-700 hover:bg-gray-100"
                               }`}
@@ -247,7 +247,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
 
                           <button
                             onClick={() => handleDeleteChat(chat.id)}
-                            className={`flex items-center gap-3 w-full px-4 py-2 text-sm text-left transition-colors ${darkMode
+                            className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer text-sm text-left transition-colors ${darkMode
                               ? "text-red-400 hover:bg-gray-700"
                               : "text-red-600 hover:bg-gray-100"
                               }`}
@@ -261,7 +261,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
                   ))}
                 </div> :
                 <div className="mt-3 space-y-1 max-h-64">
-                  <p className={`text-xs mt-0.5 text-center ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                  <p className={`text-sm mt-0.5 text-center ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
                     No Previous Chats
                   </p>
                 </div>
@@ -270,27 +270,27 @@ export default function Sidebar({ darkMode, collapsed, main }) {
 
             {/* Tools */}
             <div className="px-4 mt-6">
-              <p className={`text-sm mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Tools</p>
+              <p className={`text-base mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Tools</p>
 
-              <button className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
+              <button className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
                 }`}>
                 <CircleQuestionMarkIcon size={18} />
                 Questions
               </button>
 
-              <button className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
+              <button className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
                 }`}>
                 <Lightbulb size={18} />
                 Concepts
               </button>
 
-              <button className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
+              <button className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
                 }`}>
                 <EyeIcon size={18} />
                 Add-on info
               </button>
 
-              <button className={`flex items-center gap-3 w-full px-4 py-2 rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
+              <button className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
                 }`}>
                 <Smartphone size={18} />
                 Mobile App
@@ -355,7 +355,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
 
 
             <button
-              className={`block w-full text-center py-2 rounded-full font-medium transition-colors ${darkMode
+              className={`block w-full text-center py-2 cursor-pointer rounded-full font-medium transition-colors ${darkMode
                 ? "bg-purple-600 text-white hover:bg-purple-700"
                 : "bg-purple-600 text-white hover:bg-purple-700"
                 }`}
