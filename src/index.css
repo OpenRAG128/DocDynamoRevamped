@@ -3,7 +3,7 @@
 @theme {
     --color-text: #0a0814;
     --color-background: #f5f4fc;
-    --color-primay:  #513cd9;
+    --color-primay: #513cd9;
     --color-secondary: #9384f1;
     --color-accent: #6750f6;
     --font-family-sans: "Onest", ui-sans-serif, system-ui, sans-serif;
@@ -135,5 +135,53 @@
 
     .animation-delay-4000 {
         animation-delay: 4s;
+    }
+
+    /* Custom Scrollbar Styling */
+    .scrollbar-custom {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    }
+
+    .scrollbar-custom::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+        border-radius: 4px;
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: 4px;
+        border: 2px solid var(--scrollbar-track);
+    }
+
+    .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+        background: var(--scrollbar-thumb-hover);
+    }
+
+    /* Light Mode Scrollbar Colors */
+    .light-scrollbar {
+        --scrollbar-track: rgba(229, 231, 235, 0.5);
+        --scrollbar-thumb: rgba(156, 163, 175, 0.7);
+        --scrollbar-thumb-hover: rgba(107, 114, 128, 0.9);
+    }
+
+    /* Dark Mode Scrollbar Colors */
+    .dark-scrollbar {
+        --scrollbar-track: rgba(31, 41, 55, 0.5);
+        --scrollbar-thumb: rgba(75, 85, 99, 0.7);
+        --scrollbar-thumb-hover: rgba(107, 114, 128, 0.9);
+    }
+
+    .react-pdf__Page__textContent {
+        position: relative;
+    }
+
+    .react-pdf__Page__textContent span {
+        position: relative;
     }
 }

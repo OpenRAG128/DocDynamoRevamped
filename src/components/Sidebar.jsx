@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatedList } from "./AnimatedList.jsx";
 import {
   MessageCircle,
@@ -15,8 +16,11 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
+import { deleteFilesFromIndexedDB } from "@/util/utils.js";
 
 export default function Sidebar({ darkMode, collapsed, main }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [cycle, setCycle] = useState(0);
   const [chats, setChats] = useState([]);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -66,7 +70,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
   };
 
   const glassBase =
-  "relative overflow-hidden backdrop-blur-xl border shadow-lg after:absolute after:inset-0 after:bg-gradient-to-tr after:from-white/30 after:to-transparent after:opacity-30 after:pointer-events-none";
+    "relative overflow-hidden backdrop-blur-xl border shadow-lg after:absolute after:inset-0 after:bg-gradient-to-tr after:from-white/30 after:to-transparent after:opacity-30 after:pointer-events-none";
 
 
   const handleShareChat = (chatId) => {
@@ -82,9 +86,16 @@ export default function Sidebar({ darkMode, collapsed, main }) {
     setOpenMenuId(null);
   };
 
-  const handleDeleteChat = (chatId) => {
+  const handleDeleteChat = async (chatId) => {
     if (confirm('Are you sure you want to delete this chat?')) {
+      await deleteFilesFromIndexedDB(chatId);
       const updatedChats = chats.filter(chat => chat.id !== chatId);
+
+      // Check if we're currently viewing the deleted chat or if no chats remain
+      const isViewingDeletedChat = location.pathname === `/chat/${chatId}`;
+      if (isViewingDeletedChat || updatedChats.length === 0) {
+        navigate('/');
+      }
       setChats(updatedChats);
       localStorage.setItem('docDynamoChats', JSON.stringify(updatedChats));
     }
@@ -103,7 +114,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
         }
       `}
     >
-      <div className="flex-1 overflow-y-auto">
+      <div className={`flex-1 overflow-y-auto scrollbar-custom ${darkMode ? 'dark-scrollbar' : 'light-scrollbar'}`}>
 
         {/* ================= COLLAPSED VIEW ================= */}
         {collapsed && (
@@ -164,7 +175,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
 
               {/* Chat History */}
               {chats.length != 0 ?
-                <div className="mt-3 space-y-1 max-h-64 overflow-y-auto">
+                <div className={`mt-3 space-y-1 max-h-64 overflow-y-auto scrollbar-custom ${darkMode ? 'dark-scrollbar' : 'light-scrollbar'}`}>
                   {chats.map((chat) => (
                     <div key={chat.id} className="relative group">
                       <button
@@ -315,37 +326,37 @@ export default function Sidebar({ darkMode, collapsed, main }) {
             >
               <AnimatedList key={cycle} delay={2000} className="space-y-2">
                 <div
-  className={`${glassBase} w-full px-4 py-3 rounded-xl
+                  className={`${glassBase} w-full px-4 py-3 rounded-xl
   ${darkMode
-    ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200"
-    : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
-  }`}
->
-  Know what's better than Static Documents?
-</div>
+                      ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200"
+                      : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
+                    }`}
+                >
+                  Know what's better than Static Documents?
+                </div>
 
 
 
                 <div
-  className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium
+                  className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium
   ${darkMode
-    ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300"
-    : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800"
-  }`}
->
-  DocDynamo
-</div>
+                      ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300"
+                      : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800"
+                    }`}
+                >
+                  DocDynamo
+                </div>
 
 
                 <div
-  className={`${glassBase} w-full px-4 py-3 rounded-xl
+                  className={`${glassBase} w-full px-4 py-3 rounded-xl
   ${darkMode
-    ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300"
-    : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
-  }`}
->
-  Coz it makes them talk
-</div>
+                      ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300"
+                      : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
+                    }`}
+                >
+                  Coz it makes them talk
+                </div>
 
 
               </AnimatedList>
