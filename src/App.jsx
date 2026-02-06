@@ -4,6 +4,7 @@ import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
 import ChatPage from './components/ChatPage'
+import Login from './components/Login'
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -15,11 +16,41 @@ export default function App() {
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
+  // Auth state
+  const [loggedIn, setLoggedIn] = useState(() => {
+    const saved = localStorage.getItem('loginState')
+    if (saved) {
+      const { loggedIn, timestamp } = JSON.parse(saved)
+      // Check if login is still valid (e.g., within 7 days)
+      const sevenDays = 7 * 24 * 60 * 60 * 1000
+      if (Date.now() - timestamp < sevenDays) {
+        return loggedIn
+      }
+    }
+    return false
+  })
+  const [showLogin, setShowLogin] = useState(false)
+
   useEffect(() => {
     const root = document.documentElement;
     darkMode ? root.classList.add('dark') : root.classList.remove('dark');
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('loginState')
+    setLoggedIn(false)
+  }
+
+  // Show login screen if not logged in and showLogin is true
+  if (showLogin && !loggedIn) {
+    return (
+      <Login
+        setLoggedIn={setLoggedIn}
+        setShowLogin={setShowLogin}
+      />
+    )
+  }
 
   return (
     <Router>
@@ -29,6 +60,9 @@ export default function App() {
           toggleDarkMode={() => setDarkMode(prev => !prev)}
           sidebarCollapsed={sidebarCollapsed}
           toggleSidebar={() => setSidebarCollapsed(prev => !prev)}
+          loggedIn={loggedIn}
+          onLogin={() => setShowLogin(true)}
+          onLogout={handleLogout}
         />
 
         <div className="flex flex-1 overflow-hidden ">

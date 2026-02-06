@@ -1,12 +1,12 @@
-import { Sun, Moon, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Sun, Moon, PanelLeftClose, PanelLeftOpen, LogOut } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
-export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar }) {
+export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar, loggedIn, onLogin, onLogout }) {
   return (
     <div className={`pr-4 py-3 flex justify-between items-center w-full border-b transition-colors ${darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
       } gap-3 drop-shadow-sm`}>
       <div className="flex items-center gap-2 pl-4">
-        <img src={logo} alt="DocDynamo Logo" className='h-7 w-7'/>
+        <img src={logo} alt="DocDynamo Logo" className='h-7 w-7' />
         <span
           className={`text-2xl font-family-sans font-extrabold ${darkMode ? "text-purple-400" : "text-purple-600"
             }`}
@@ -30,9 +30,25 @@ export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, tog
       </div>
 
       <div className="flex items-center gap-3">
-        <button className='px-4 py-1 rounded-full bg-purple-600 text-white cursor-pointer hover:bg-purple-700 transition-colors font-family-sans font-medium'>
-          Sign up
-        </button>
+        {loggedIn ? (
+          <button
+            onClick={onLogout}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full transition-colors font-family-sans font-medium ${darkMode
+              ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+              }`}
+          >
+            <LogOut size={16} />
+            Sign out
+          </button>
+        ) : (
+          <button
+            onClick={onLogin}
+            className='px-4 py-1 rounded-full bg-purple-600 text-white cursor-pointer hover:bg-purple-700 transition-colors font-family-sans font-medium'
+          >
+            Sign up
+          </button>
+        )}
         <button
           className={`cursor-pointer p-1.5 rounded-md transition-colors ${darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-100 hover:bg-gray-200"
             }`}
