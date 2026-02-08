@@ -144,11 +144,20 @@ export default function Login({ setLoggedIn, setShowLogin }) {
         try {
             setLoading(true);
             setError("");
-            await sendPasswordResetEmail(auth, email);
+
+            // Action code settings for the reset link
+            const actionCodeSettings = {
+                // URL to redirect to after password reset (your app's URL)
+                url: window.location.origin,
+                handleCodeInApp: false,
+            };
+
+            await sendPasswordResetEmail(auth, email, actionCodeSettings);
+            console.log("Password reset email sent successfully to:", email);
             setShowSuccessModal(true);
             setShowForgotPassword(false);
         } catch (error) {
-            console.error("Password Reset Error:", error);
+            console.error("Password Reset Error:", error.code, error.message, error);
             switch (error.code) {
                 case 'auth/user-not-found':
                     setError("No account found with this email address");
@@ -156,8 +165,24 @@ export default function Login({ setLoggedIn, setShowLogin }) {
                 case 'auth/invalid-email':
                     setError("Invalid email address");
                     break;
+                case 'auth/missing-email':
+                    setError("Please enter an email address");
+                    break;
+                case 'auth/too-many-requests':
+                    setError("Too many requests. Please wait a moment and try again");
+                    break;
+                case 'auth/network-request-failed':
+                    setError("Network error. Please check your internet connection");
+                    break;
+                case 'auth/invalid-credential':
+                    // Firebase sometimes throws this even for password reset
+                    setError("Unable to send reset email. Please verify your email address");
+                    break;
+                case 'auth/operation-not-allowed':
+                    setError("Password reset is not enabled. Please contact support.");
+                    break;
                 default:
-                    setError("Failed to send password reset email. Please try again");
+                    setError(`Failed to send reset email: ${error.code || error.message || 'Unknown error'}`);
             }
         } finally {
             setLoading(false);
@@ -269,7 +294,7 @@ export default function Login({ setLoggedIn, setShowLogin }) {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
                                 disabled={loading}
                             >
                                 {showPassword ? (
@@ -288,7 +313,7 @@ export default function Login({ setLoggedIn, setShowLogin }) {
                         <button
                             onClick={isSignUp ? handleSignUp : handleEmailLogin}
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:hover:scale-100"
+                            className="w-full cursor-pointer bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
                             {loading ? "Please wait..." : (isSignUp ? "Sign Up" : "Login")}
                         </button>
@@ -305,7 +330,7 @@ export default function Login({ setLoggedIn, setShowLogin }) {
                         <button
                             onClick={handleLogin}
                             disabled={loading}
-                            className="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:bg-gray-100"
+                            className="w-full cursor-pointer bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:bg-gray-100"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -319,15 +344,18 @@ export default function Login({ setLoggedIn, setShowLogin }) {
                         <button
                             onClick={handleGuestLogin}
                             disabled={loading}
-                            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                            className="w-full cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                         >
                             Continue as Guest
                         </button>
 
                         <div className="text-center space-y-2">
                             <button
-                                onClick={() => setShowForgotPassword(true)}
-                                className="text-purple-600 hover:text-purple-700 hover:underline text-sm block w-full transition-colors"
+                                onClick={() => {
+                                    setError("");
+                                    setShowForgotPassword(true);
+                                }}
+                                className="text-purple-600 hover:text-purple-700 hover:underline text-sm block w-full transition-colors cursor-pointer"
                             >
                                 Forgot Password?
                             </button>
@@ -335,7 +363,7 @@ export default function Login({ setLoggedIn, setShowLogin }) {
                                 {isSignUp ? "Already have an account? " : "Don't have an account? "}
                                 <button
                                     onClick={() => setIsSignUp(!isSignUp)}
-                                    className="text-purple-600 hover:text-purple-700 font-semibold hover:underline transition-colors"
+                                    className="text-purple-600 hover:text-purple-700 font-semibold hover:underline transition-colors cursor-pointer"
                                 >
                                     {isSignUp ? "Login" : "Sign Up"}
                                 </button>
@@ -347,8 +375,8 @@ export default function Login({ setLoggedIn, setShowLogin }) {
 
             {/* Forgot Password Modal */}
             {showForgotPassword && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 scale-100">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowForgotPassword(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 scale-100" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6">
                             <div className="text-center mb-6">
                                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -378,8 +406,14 @@ export default function Login({ setLoggedIn, setShowLogin }) {
                                             setEmail(e.target.value);
                                             setError("");
                                         }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !loading && email) {
+                                                handleForgotPassword();
+                                            }
+                                        }}
                                         className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                                         disabled={loading}
+                                        autoFocus
                                     />
                                     <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
@@ -413,7 +447,7 @@ export default function Login({ setLoggedIn, setShowLogin }) {
 
             {/* Success Modal */}
             {showSuccessModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 scale-100">
                         <div className="p-6 text-center">
                             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">

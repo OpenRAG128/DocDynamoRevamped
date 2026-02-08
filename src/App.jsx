@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { auth } from './util/firebase'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
@@ -29,7 +31,23 @@ export default function App() {
     }
     return false
   })
+  const [user, setUser] = useState(null)
   const [showLogin, setShowLogin] = useState(false)
+
+  // Listen to Firebase auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser)
+        setLoggedIn(true)
+        localStorage.setItem('loginState', JSON.stringify({ loggedIn: true, timestamp: Date.now() }))
+      } else {
+        setUser(null)
+        // Don't automatically log out - allow guest mode
+      }
+    })
+    return () => unsubscribe()
+  }, [])
 
   useEffect(() => {
     const root = document.documentElement;
@@ -37,8 +55,14 @@ export default function App() {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth)
+    } catch (error) {
+      console.error('Sign out error:', error)
+    }
     localStorage.removeItem('loginState')
+    setUser(null)
     setLoggedIn(false)
   }
 
@@ -61,6 +85,7 @@ export default function App() {
           sidebarCollapsed={sidebarCollapsed}
           toggleSidebar={() => setSidebarCollapsed(prev => !prev)}
           loggedIn={loggedIn}
+          user={user}
           onLogin={() => setShowLogin(true)}
           onLogout={handleLogout}
         />
