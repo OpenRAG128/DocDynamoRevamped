@@ -16,9 +16,9 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
-import { deleteFilesFromIndexedDB } from "@/util/utils.js";
+import { deleteFilesFromIndexedDB, getUserChats, saveUserChats } from "@/util/utils.js";
 
-export default function Sidebar({ darkMode, collapsed, main }) {
+export default function Sidebar({ darkMode, collapsed, main, userId }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [cycle, setCycle] = useState(0);
@@ -36,14 +36,14 @@ export default function Sidebar({ darkMode, collapsed, main }) {
   }, []);
 
   useEffect(() => {
-    // Load chats from localStorage
-    try {
-      const savedChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
+    // Load chats from localStorage for the current user
+    if (userId) {
+      const savedChats = getUserChats(userId);
       setChats(savedChats);
-    } catch (error) {
-      console.error('Error loading chats:', error);
+    } else {
+      setChats([]);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     // Close menu when clicking outside
@@ -64,7 +64,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
         chat.id === chatId ? { ...chat, title: newTitle.trim() } : chat
       );
       setChats(updatedChats);
-      localStorage.setItem('docDynamoChats', JSON.stringify(updatedChats));
+      saveUserChats(userId, updatedChats);
     }
     setOpenMenuId(null);
   };
@@ -97,7 +97,7 @@ export default function Sidebar({ darkMode, collapsed, main }) {
         navigate('/');
       }
       setChats(updatedChats);
-      localStorage.setItem('docDynamoChats', JSON.stringify(updatedChats));
+      saveUserChats(userId, updatedChats);
     }
     setOpenMenuId(null);
   };

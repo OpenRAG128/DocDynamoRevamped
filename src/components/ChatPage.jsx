@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, SendHorizontalIcon, ZoomIn, ZoomOut, Download, Search, MousePointer } from 'lucide-react';
-import { getFilesFromIndexedDB } from '@/util/utils.js';
+import { getFilesFromIndexedDB, getUserChats } from '@/util/utils.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -11,7 +11,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 
-export default function ChatPage({ darkMode, setMain }) {
+export default function ChatPage({ darkMode, setMain, userId }) {
     const { chatId } = useParams();
     const navigate = useNavigate();
     const [chat, setChat] = useState(null);
@@ -188,7 +188,7 @@ export default function ChatPage({ darkMode, setMain }) {
     useEffect(() => {
         setMain(true);
         try {
-            const savedChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
+            const savedChats = getUserChats(userId);
             const found = savedChats.find((c) => c.id === chatId);
 
             if (!found) {
@@ -211,7 +211,7 @@ export default function ChatPage({ darkMode, setMain }) {
             console.error('Error loading chat:', error);
             navigate('/');
         }
-    }, [chatId, navigate]);
+    }, [chatId, navigate, userId]);
 
     useEffect(() => {
         let isMounted = true;

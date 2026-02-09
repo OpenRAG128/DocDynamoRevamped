@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
-import { saveFilesToIndexedDB } from '../util/utils.js';
+import { saveFilesToIndexedDB, getUserChats, saveUserChats } from '../util/utils.js';
 import {
   FaGraduationCap,
   FaFlask,
@@ -16,7 +16,7 @@ import {
 } from "react-icons/fa";
 import Footer from './Footer.jsx';
 
-export default function MainSection({ darkMode, setMain }) {
+export default function MainSection({ darkMode, setMain, userId }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [error, setError] = useState('');
@@ -37,8 +37,8 @@ export default function MainSection({ darkMode, setMain }) {
         await saveFilesToIndexedDB(chatData.files, chatId);
       }
 
-      // Save chat metadata to localStorage
-      const existingChats = JSON.parse(localStorage.getItem('docDynamoChats') || '[]');
+      // Save chat metadata to user-specific localStorage
+      const existingChats = getUserChats(userId);
       const newChat = {
         id: chatId,
         title: chatData.message.substring(0, 50) || 'New Chat',
@@ -48,7 +48,7 @@ export default function MainSection({ darkMode, setMain }) {
         message: chatData.message
       };
       existingChats.unshift(newChat);
-      localStorage.setItem('docDynamoChats', JSON.stringify(existingChats));
+      saveUserChats(userId, existingChats);
     } catch (error) {
       console.error('Error saving chat:', error);
     }

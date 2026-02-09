@@ -1,10 +1,11 @@
 import { signInWithPopup, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth, googleProvider } from "../util/firebase.js";
+import { generateGuestId } from "../util/utils.js";
 import brainIcon from "../assets/logo.svg";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-export default function Login({ setLoggedIn, setShowLogin }) {
+export default function Login({ setLoggedIn, setShowLogin, setUserId }) {
     const [isSignUp, setIsSignUp] = useState(true);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -20,7 +21,9 @@ export default function Login({ setLoggedIn, setShowLogin }) {
             try {
                 const result = await getRedirectResult(auth);
                 if (result?.user) {
-                    localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now() }));
+                    const uid = result.user.uid;
+                    localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: uid }));
+                    setUserId(uid);
                     setLoggedIn(true);
                     setShowLogin(false);
                 }
@@ -29,14 +32,16 @@ export default function Login({ setLoggedIn, setShowLogin }) {
             }
         };
         checkRedirectResult();
-    }, [setLoggedIn, setShowLogin]);
+    }, [setLoggedIn, setShowLogin, setUserId]);
 
     const handleLogin = async () => {
         try {
             setLoading(true);
             setError("");
-            await signInWithPopup(auth, googleProvider);
-            localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now() }));
+            const result = await signInWithPopup(auth, googleProvider);
+            const uid = result.user.uid;
+            localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: uid }));
+            setUserId(uid);
             setLoggedIn(true);
             setShowLogin(false);
         } catch (error) {
@@ -58,7 +63,9 @@ export default function Login({ setLoggedIn, setShowLogin }) {
     };
 
     const handleGuestLogin = () => {
-        localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now() }));
+        const guestId = generateGuestId();
+        localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: guestId }));
+        setUserId(guestId);
         setLoggedIn(true);
         setShowLogin(false);
     };
@@ -72,8 +79,10 @@ export default function Login({ setLoggedIn, setShowLogin }) {
         try {
             setLoading(true);
             setError("");
-            await signInWithEmailAndPassword(auth, email, password);
-            localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now() }));
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            const uid = result.user.uid;
+            localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: uid }));
+            setUserId(uid);
             setLoggedIn(true);
             setShowLogin(false);
         } catch (error) {
@@ -112,8 +121,10 @@ export default function Login({ setLoggedIn, setShowLogin }) {
         try {
             setLoading(true);
             setError("");
-            await createUserWithEmailAndPassword(auth, email, password);
-            localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now() }));
+            const result = await createUserWithEmailAndPassword(auth, email, password);
+            const uid = result.user.uid;
+            localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: uid }));
+            setUserId(uid);
             setLoggedIn(true);
             setShowLogin(false);
         } catch (error) {

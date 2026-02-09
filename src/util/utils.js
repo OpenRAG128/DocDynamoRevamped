@@ -99,3 +99,48 @@ export const deleteFilesFromIndexedDB = async (chatId) => {
     throw error;
   }
 };
+
+// User-specific chat storage helpers
+export const getUserChatStorageKey = (userId) => {
+  return userId ? `docDynamoChats_${userId}` : "docDynamoChats_guest";
+};
+
+export const getUserChats = (userId) => {
+  try {
+    const key = getUserChatStorageKey(userId);
+    return JSON.parse(localStorage.getItem(key) || "[]");
+  } catch (error) {
+    console.error("Error loading user chats:", error);
+    return [];
+  }
+};
+
+export const saveUserChats = (userId, chats) => {
+  try {
+    const key = getUserChatStorageKey(userId);
+    localStorage.setItem(key, JSON.stringify(chats));
+  } catch (error) {
+    console.error("Error saving user chats:", error);
+  }
+};
+
+export const clearUserChats = async (userId) => {
+  try {
+    const key = getUserChatStorageKey(userId);
+    const chats = JSON.parse(localStorage.getItem(key) || "[]");
+
+    // Delete all files associated with user's chats from IndexedDB
+    for (const chat of chats) {
+      await deleteFilesFromIndexedDB(chat.id);
+    }
+
+    // Clear localStorage
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.error("Error clearing user chats:", error);
+  }
+};
+
+export const generateGuestId = () => {
+  return `guest_${crypto.randomUUID()}`;
+};

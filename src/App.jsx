@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './util/firebase'
+import { clearUserChats } from './util/utils'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
@@ -32,6 +33,14 @@ export default function App() {
     return false
   })
   const [user, setUser] = useState(null)
+  const [userId, setUserId] = useState(() => {
+    const saved = localStorage.getItem('loginState')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return parsed.userId || null
+    }
+    return null
+  })
   const [showLogin, setShowLogin] = useState(false)
 
   // Listen to Firebase auth state changes
@@ -39,8 +48,13 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
+        setUserId(firebaseUser.uid)
         setLoggedIn(true)
-        localStorage.setItem('loginState', JSON.stringify({ loggedIn: true, timestamp: Date.now() }))
+        localStorage.setItem('loginState', JSON.stringify({
+          loggedIn: true,
+          timestamp: Date.now(),
+          userId: firebaseUser.uid
+        }))
       } else {
         setUser(null)
         // Don't automatically log out - allow guest mode
@@ -61,8 +75,20 @@ export default function App() {
     } catch (error) {
       console.error('Sign out error:', error)
     }
+
+    // Clear user's chats on logout (for guest users)
+    // Firebase users keep their chats tied to their uid
+    const savedState = localStorage.getItem('loginState')
+    if (savedState) {
+      const { userId: savedUserId } = JSON.parse(savedState)
+      if (savedUserId && savedUserId.startsWith('guest_')) {
+        await clearUserChats(savedUserId)
+      }
+    }
+
     localStorage.removeItem('loginState')
     setUser(null)
+    setUserId(null)
     setLoggedIn(false)
   }
 
@@ -72,6 +98,7 @@ export default function App() {
       <Login
         setLoggedIn={setLoggedIn}
         setShowLogin={setShowLogin}
+        setUserId={setUserId}
       />
     )
   }
@@ -95,17 +122,18 @@ export default function App() {
             darkMode={darkMode}
             collapsed={sidebarCollapsed}
             main={main}
+            userId={userId}
           />
 
           <main className="flex-1 overflow-y-auto">
             <Routes>
               <Route
                 path="/"
-                element={<MainSection darkMode={darkMode} setMain={setMain} />}
+                element={<MainSection darkMode={darkMode} setMain={setMain} userId={userId} />}
               />
               <Route
                 path="/chat/:chatId"
-                element={<ChatPage darkMode={darkMode} setMain={setMain} />}
+                element={<ChatPage darkMode={darkMode} setMain={setMain} userId={userId} />}
               />
             </Routes>
           </main>
