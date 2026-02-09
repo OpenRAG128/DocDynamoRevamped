@@ -43,6 +43,11 @@ export default function App() {
   })
   const [showLogin, setShowLogin] = useState(false)
 
+  // If user has ever had an account 
+  const [hasAccount, setHasAccount] = useState(() => {
+    return localStorage.getItem('hasUserAccount') === 'true'
+  })
+
   // Listen to Firebase auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -99,6 +104,7 @@ export default function App() {
         setLoggedIn={setLoggedIn}
         setShowLogin={setShowLogin}
         setUserId={setUserId}
+        setHasAccount={setHasAccount}
       />
     )
   }
@@ -115,6 +121,7 @@ export default function App() {
           user={user}
           onLogin={() => setShowLogin(true)}
           onLogout={handleLogout}
+          hasAccount={hasAccount}
         />
 
         <div className="flex flex-1 overflow-hidden ">

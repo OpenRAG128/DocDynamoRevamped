@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Sun, Moon, PanelLeftClose, PanelLeftOpen, LogOut, User, ChevronDown } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
-export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar, loggedIn, user, onLogin, onLogout }) {
+export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar, loggedIn, user, onLogin, onLogout, hasAccount }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -144,7 +144,7 @@ export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, tog
             onClick={onLogin}
             className='px-4 py-1 rounded-full bg-purple-600 text-white cursor-pointer hover:bg-purple-700 transition-colors font-family-sans font-medium'
           >
-            Sign up
+            {hasAccount ? 'Login' : 'Sign up'}
           </button>
         )}
         <button

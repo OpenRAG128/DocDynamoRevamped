@@ -5,8 +5,10 @@ import brainIcon from "../assets/logo.svg";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-export default function Login({ setLoggedIn, setShowLogin, setUserId }) {
-    const [isSignUp, setIsSignUp] = useState(true);
+export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAccount }) {
+    // Check if user has previously had an account to default to login mode
+    const hasExistingAccount = localStorage.getItem('hasUserAccount') === 'true';
+    const [isSignUp, setIsSignUp] = useState(!hasExistingAccount);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +25,8 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId }) {
                 if (result?.user) {
                     const uid = result.user.uid;
                     localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: uid }));
+                    localStorage.setItem("hasUserAccount", "true");
+                    setHasAccount(true);
                     setUserId(uid);
                     setLoggedIn(true);
                     setShowLogin(false);
@@ -32,7 +36,7 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId }) {
             }
         };
         checkRedirectResult();
-    }, [setLoggedIn, setShowLogin, setUserId]);
+    }, [setLoggedIn, setShowLogin, setUserId, setHasAccount]);
 
     const handleLogin = async () => {
         try {
@@ -41,6 +45,8 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId }) {
             const result = await signInWithPopup(auth, googleProvider);
             const uid = result.user.uid;
             localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: uid }));
+            localStorage.setItem("hasUserAccount", "true");
+            setHasAccount(true);
             setUserId(uid);
             setLoggedIn(true);
             setShowLogin(false);
@@ -82,6 +88,8 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId }) {
             const result = await signInWithEmailAndPassword(auth, email, password);
             const uid = result.user.uid;
             localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: uid }));
+            localStorage.setItem("hasUserAccount", "true");
+            setHasAccount(true);
             setUserId(uid);
             setLoggedIn(true);
             setShowLogin(false);
@@ -124,6 +132,8 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId }) {
             const result = await createUserWithEmailAndPassword(auth, email, password);
             const uid = result.user.uid;
             localStorage.setItem("loginState", JSON.stringify({ loggedIn: true, timestamp: Date.now(), userId: uid }));
+            localStorage.setItem("hasUserAccount", "true");
+            setHasAccount(true);
             setUserId(uid);
             setLoggedIn(true);
             setShowLogin(false);
@@ -164,7 +174,6 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId }) {
             };
 
             await sendPasswordResetEmail(auth, email, actionCodeSettings);
-            console.log("Password reset email sent successfully to:", email);
             setShowSuccessModal(true);
             setShowForgotPassword(false);
         } catch (error) {
