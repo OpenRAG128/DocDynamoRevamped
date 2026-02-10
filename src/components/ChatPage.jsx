@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, SendHorizontalIcon, ZoomIn, ZoomOut, Download, Search, MousePointer } from 'lucide-react';
+import { ArrowLeft, FileText, SendHorizontalIcon, ZoomIn, ZoomOut, Download, Search, MousePointer, X, ChevronRight } from 'lucide-react';
 import { getFilesFromIndexedDB, getUserChats } from '@/util/utils.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
@@ -30,6 +30,8 @@ export default function ChatPage({ darkMode, setMain, userId }) {
     const scrollContainerRef = useRef(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [pdfBaseWidth, setPdfBaseWidth] = useState(0);
+    const [showMobilePdf, setShowMobilePdf] = useState(false);
+    const mobilePdfContainerRef = useRef(null);
 
     // Track container width for responsive PDF sizing
     useEffect(() => {
@@ -301,9 +303,9 @@ export default function ChatPage({ darkMode, setMain, userId }) {
 
     return (
         <div className={`flex h-full w-full ${darkMode ? 'bg-gray-950' : 'bg-gray-50'}`}>
-            {/* Document column */}
+            {/* Document column - Hidden on mobile */}
             <section
-                className={`flex flex-col w-0 flex-[1.2] border-r overflow-hidden ${darkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}
+                className={`hidden md:flex flex-col w-0 flex-[1.2] border-r overflow-hidden ${darkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}
             >
                 {/* Header */}
                 <div className={`flex items-center justify-between px-4 py-3 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
@@ -422,76 +424,119 @@ export default function ChatPage({ darkMode, setMain, userId }) {
             </section>
 
             {/* Chat column */}
-            <section className={`flex flex-col flex-[0.9] ${darkMode ? 'bg-gray-950' : 'bg-gray-50'}`}>
-                {/* Chat header */}
-                <div className={`px-4 py-3 border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
-                    <p className="text-xs text-text/60 mb-1">Chatting as</p>
-                    <p className="text-sm font-semibold text-text">{chat.role}</p>
-                    <p className="mt-1 text-xs sm:text-[13px] text-text/60 truncate max-w-lg">
-                        {chat.message}
-                    </p>
+            <section className={`flex flex-col flex-1 md:flex-[0.9] ${darkMode ? 'bg-gray-950' : 'bg-gray-50'}`}>
+                {/* Chat header - Shows document name on mobile */}
+                <div className={`px-4 py-3 border-b flex items-center gap-3 ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                    {/* Back button - Mobile only */}
+                    <button
+                        type="button"
+                        onClick={() => navigate('/')}
+                        className={`md:hidden p-1.5 rounded-md transition-colors ${darkMode ? 'hover:bg-gray-800 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}`}
+                    >
+                        <ArrowLeft size={18} />
+                    </button>
+                    {/* File button - clickable to open PDF viewer */}
+                    <button
+                        type="button"
+                        onClick={() => setShowMobilePdf(true)}
+                        className={`md:hidden flex items-center gap-2 px-3 py-2 rounded-lg border flex-1 min-w-0 transition-colors ${darkMode ? 'border-gray-700 bg-gray-800/50 hover:bg-gray-800 text-gray-200' : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'}`}
+                    >
+                        <FileText size={16} className="text-accent shrink-0" />
+                        <span className="text-sm font-medium truncate flex-1 text-left">
+                            {chatFiles?.[0]?.name || chat.files?.[0] || 'Document'}
+                        </span>
+                        <ChevronRight size={16} className="shrink-0 text-text/40" />
+                    </button>
+                    {/* Desktop: Just show role */}
+                    <div className="hidden md:block flex-1">
+                        <p className="text-xs text-text/60">Chatting as <span className="font-medium text-text">{chat.role}</span></p>
+                    </div>
+                    {/* Mobile: Role badge */}
+                    <div className={`md:hidden px-2 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                        {chat.role}
+                    </div>
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 text-sm">
+                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 text-sm">
                     {messages.map((m) => (
-                        <div key={m.id} className="flex flex-col gap-1">
-                            <span className="text-[10px] uppercase tracking-wide text-text/40">
-                                {m.role === 'user' ? 'You' : 'DocDynamo'}
-                            </span>
-                            <div
-                                className={`max-w-full rounded-2xl px-3 py-2 text-sm leading-relaxed ${m.role === 'user'
-                                    ? darkMode
-                                        ? 'bg-purple-600/80 text-white self-end'
-                                        : 'bg-purple-600 text-white self-end'
-                                    : darkMode
-                                        ? 'bg-gray-800 text-gray-100'
-                                        : 'bg-white text-gray-800 border border-gray-200'
-                                    }`}
-                            >
-                                {m.text}
+                        <div key={m.id} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                            {/* Avatar */}
+                            <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${m.role === 'user'
+                                ? 'bg-purple-600 text-white'
+                                : darkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
+                                }`}>
+                                {m.role === 'user' ? (
+                                    <span className="text-xs font-semibold">You</span>
+                                ) : (
+                                    <img src="/logo.svg" alt="DocDynamo" className="w-5 h-5" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                                )}
+                            </div>
+                            {/* Message content */}
+                            <div className={`flex-1 max-w-[85%] ${m.role === 'user' ? 'text-right' : ''}`}>
+                                <div
+                                    className={`inline-block rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === 'user'
+                                        ? 'bg-purple-600 text-white'
+                                        : darkMode
+                                            ? 'bg-gray-800/80 text-gray-100'
+                                            : 'bg-white text-gray-800 shadow-sm border border-gray-100'
+                                        }`}
+                                >
+                                    {m.text}
+                                </div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                {/* Suggested prompts */}
-                <div className={`px-4 pb-2 space-y-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    <p className="text-xs text-text/60">Try asking</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                        {["Summarize this grade report", "Which section stands out most?", "Explain the key takeaways"]
-                            .map((label) => (
-                                <button
-                                    key={label}
-                                    type="button"
-                                    onClick={() => setInput(label)}
-                                    className={`px-3 py-1 rounded-full border text-xs cursor-pointer ${darkMode
-                                        ? 'border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-200'
-                                        : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
-                                        }`}
-                                >
-                                    {label}
-                                </button>
-                            ))}
+                {/* Suggested prompts - Card style like the screenshot */}
+                <div className={`px-4 pb-3 space-y-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    <div className="flex flex-col gap-2">
+                        {[
+                            { icon: "✨", label: "Summarize the key points", highlight: true },
+                            { icon: "📋", label: "What are the main rules or guidelines?" },
+                            { icon: "❓", label: "Explain any complex sections" }
+                        ].map((prompt) => (
+                            <button
+                                key={prompt.label}
+                                type="button"
+                                onClick={() => setInput(prompt.label)}
+                                className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border text-left text-sm transition-all cursor-pointer ${prompt.highlight
+                                    ? darkMode
+                                        ? 'border-purple-500/50 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20'
+                                        : 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100'
+                                    : darkMode
+                                        ? 'border-gray-700 bg-gray-800/50 text-gray-300 hover:bg-gray-800'
+                                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <span className="text-base">{prompt.icon}</span>
+                                <span>{prompt.label}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
 
                 {/* Input */}
-                <div className={`px-4 pb-4 pt-1 border-t ${darkMode ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`px-4 pb-4 pt-2 ${darkMode ? 'bg-gray-950' : 'bg-gray-50'}`}>
                     <div
-                        className={`flex items-end gap-2 rounded-xl px-3 py-2 border ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}
+                        className={`flex items-center gap-2 rounded-xl px-4 py-3 border shadow-sm ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}
                     >
-                        <textarea
-                            rows={2}
+                        <input
+                            type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder="Ask any question about your document..."
-                            className={`flex-1 resize-none bg-transparent outline-none text-sm ${darkMode ? 'text-gray-100 placeholder:text-gray-500' : 'text-gray-800 placeholder:text-gray-400'}`}
+                            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                            placeholder="Ask any question..."
+                            className={`flex-1 bg-transparent outline-none text-sm ${darkMode ? 'text-gray-100 placeholder:text-gray-500' : 'text-gray-800 placeholder:text-gray-400'}`}
                         />
                         <button
                             type="button"
                             onClick={handleSend}
-                            className="p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white hover:shadow-md cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            className={`p-2 rounded-lg transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${input.trim()
+                                ? 'bg-gradient-to-r from-[#3258d5] to-accent text-white hover:shadow-md'
+                                : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-400'
+                                }`}
                             disabled={!input.trim()}
                         >
                             <SendHorizontalIcon size={18} />
@@ -499,6 +544,89 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                     </div>
                 </div>
             </section>
+
+            {/* Mobile PDF Viewer Modal */}
+            {showMobilePdf && (
+                <div className="md:hidden fixed inset-0 z-50 flex flex-col bg-black/90">
+                    {/* Modal header */}
+                    <div className={`flex items-center justify-between px-4 py-3 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/')}
+                                className={`p-1.5 rounded-md transition-colors ${darkMode ? 'hover:bg-gray-800 text-gray-200' : 'hover:bg-gray-100 text-gray-700'}`}
+                            >
+                                <ArrowLeft size={18} />
+                            </button>
+                            <FileText size={16} className="text-accent shrink-0" />
+                            <span className={`text-sm font-medium truncate ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                {chatFiles?.[selectedFileIndex]?.name || 'Document'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleDownload}
+                                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                            >
+                                <Download size={18} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowMobilePdf(false)}
+                                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* PDF content */}
+                    <div ref={mobilePdfContainerRef} className="flex-1 overflow-auto flex items-start justify-center p-4">
+                        {previewUrl ? (
+                            chatFiles[selectedFileIndex]?.type?.startsWith('image/') ? (
+                                <img
+                                    src={previewUrl}
+                                    alt={chatFiles[selectedFileIndex]?.name || 'Document preview'}
+                                    className="max-w-full object-contain"
+                                />
+                            ) : (
+                                <Document
+                                    file={previewUrl}
+                                    onLoadSuccess={(pdf) => setTotalPages(pdf.numPages)}
+                                    loading={
+                                        <p className="text-sm text-gray-400">Loading PDF…</p>
+                                    }
+                                    error={
+                                        <p className="text-sm text-red-500">Failed to load PDF</p>
+                                    }
+                                    className="flex flex-col items-center gap-4"
+                                >
+                                    {Array.from({ length: totalPages }, (_, index) => (
+                                        <Page
+                                            key={`mobile-page-${index + 1}`}
+                                            pageNumber={index + 1}
+                                            width={Math.min(window.innerWidth - 32, 600)}
+                                            renderTextLayer={false}
+                                            renderAnnotationLayer={false}
+                                            className="shadow-lg"
+                                        />
+                                    ))}
+                                </Document>
+                            )
+                        ) : (
+                            <p className="text-gray-400 text-sm">No preview available</p>
+                        )}
+                    </div>
+
+                    {/* Page indicator */}
+                    {totalPages > 1 && (
+                        <div className={`text-center py-2 text-sm ${darkMode ? 'bg-gray-900 text-gray-400' : 'bg-white text-gray-600'}`}>
+                            Page {currentPage} of {totalPages}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

@@ -40,16 +40,10 @@ export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, tog
   };
 
   return (
-    <div className={`pr-4 py-3 flex justify-between items-center w-full border-b transition-colors ${darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
+    <div className={`px-3 sm:px-4 py-3 flex justify-between items-center w-full border-b transition-colors ${darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
       } gap-3 drop-shadow-sm relative z-50`}>
-      <div className="flex items-center gap-2 pl-4">
-        <img src={logo} alt="DocDynamo Logo" className='h-7 w-7' />
-        <span
-          className={`text-2xl font-family-sans font-extrabold ${darkMode ? "text-purple-400" : "text-purple-600"
-            }`}
-        >
-          DocDynamo
-        </span>
+      <div className="flex items-center gap-1 sm:gap-2">
+        {/* Menu toggle button - at the start */}
         <button
           onClick={handleSidebarToggle}
           className={`p-2 rounded transition-colors ${darkMode
@@ -58,7 +52,6 @@ export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, tog
             }`}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {/* Show different icons on mobile vs desktop */}
           <span className="hidden md:block">
             {sidebarCollapsed ? (
               <PanelLeftOpen size={18} />
@@ -74,6 +67,15 @@ export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, tog
             )}
           </span>
         </button>
+
+        {/* Logo and title */}
+        <img src={logo} alt="DocDynamo Logo" className='h-6 w-6 sm:h-7 sm:w-7' />
+        <span
+          className={`text-lg sm:text-2xl font-family-sans font-extrabold ${darkMode ? "text-purple-400" : "text-purple-600"
+            }`}
+        >
+          DocDynamo
+        </span>
       </div>
 
       <div className="flex items-center gap-3">
