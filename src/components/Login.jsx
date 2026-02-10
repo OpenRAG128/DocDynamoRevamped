@@ -220,7 +220,7 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
     };
 
     return (
-        <div className="flex h-screen bg-linear-to-r from-purple-50 to-indigo-100">
+        <div className="flex h-screen bg-linear-to-r from-purple-50 to-indigo-100 overflow-hidden">
             {/* Close button */}
             <button
                 onClick={() => setShowLogin(false)}
@@ -231,7 +231,7 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
             </button>
 
             {/* Left side - Illustration - Hidden on mobile */}
-            <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 relative overflow-hidden">
+            <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 relative overflow-hidden">
                 <div className="relative z-10 flex flex-col items-center">
                     <img src={brainIcon} alt="Brain Illustration" className="w-48 h-48 mb-6 drop-shadow-lg" />
                     <h1 className="text-3xl sm:text-5xl md:text-[58px] font-display font-bold text-purple-600 flex justify-center items-center gap-2">
@@ -249,30 +249,30 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
             </div>
 
             {/* Right side - Login form - Full width on mobile */}
-            <div className="flex-1 md:flex-1 w-full flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-purple-600 to-indigo-700">
+            <div className="flex-1 w-full flex items-center justify-center relative overflow-y-auto bg-gradient-to-br from-purple-600 to-indigo-700 py-8 px-4">
                 {/* Background decorative elements */}
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full transform translate-x-32 translate-y-32"></div>
                 <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full transform -translate-x-20 -translate-y-20"></div>
-                <div className="absolute top-1/2 right-10 w-32 h-32 bg-purple-400 opacity-10 rounded-full"></div>
+                <div className="absolute top-1/2 right-10 w-32 h-32 bg-purple-400 opacity-10 rounded-full hidden sm:block"></div>
 
-                <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-md mx-4 md:mx-8 z-10">
+                <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 md:p-8 w-full max-w-md z-10 my-auto">
                     {/* Mobile header with logo */}
-                    <div className="md:hidden text-center mb-6">
-                        <img src={brainIcon} alt="DocDynamo" className="w-14 h-14 mx-auto mb-2" />
-                        <h1 className="text-2xl font-bold text-purple-600">DocDynamo</h1>
-                        <p className="text-sm text-gray-600">AI-Powered Document Intelligence</p>
+                    <div className="lg:hidden text-center mb-4 sm:mb-6">
+                        <img src={brainIcon} alt="DocDynamo" className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2" />
+                        <h1 className="text-xl sm:text-2xl font-bold text-purple-600">DocDynamo</h1>
+                        <p className="text-xs sm:text-sm text-gray-600">AI-Powered Document Intelligence</p>
                     </div>
 
-                    <div className="text-center mb-6 md:mb-8">
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Hello!</h1>
-                        <p className="text-gray-600">
+                    <div className="text-center mb-4 sm:mb-6">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1">Hello!</h1>
+                        <p className="text-gray-600 text-sm sm:text-base">
                             {isSignUp ? "Sign Up to Get Started" : "Welcome Back!"}
                         </p>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                         {error && (
-                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl">
+                            <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded-xl text-sm">
                                 {error}
                             </div>
                         )}
@@ -287,10 +287,10 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
                                     setError("");
                                 }}
                                 onKeyDown={handleKeyDown}
-                                className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                                className="w-full px-4 py-2.5 sm:py-3 pl-11 sm:pl-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                                 disabled={loading}
                             />
-                            <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="absolute left-3.5 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
                             </svg>
                         </div>
@@ -305,24 +305,24 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
                                     setError("");
                                 }}
                                 onKeyDown={handleKeyDown}
-                                className="w-full px-4 py-3 pl-12 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                                className="w-full px-4 py-2.5 sm:py-3 pl-11 sm:pl-12 pr-11 sm:pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                                 disabled={loading}
                             />
-                            <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="absolute left-3.5 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                             </svg>
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                                className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
                                 disabled={loading}
                             >
                                 {showPassword ? (
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
                                     </svg>
                                 ) : (
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                     </svg>
@@ -333,16 +333,16 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
                         <button
                             onClick={isSignUp ? handleSignUp : handleEmailLogin}
                             disabled={loading}
-                            className="w-full cursor-pointer bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:hover:scale-100"
+                            className="w-full cursor-pointer bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:hover:scale-100 text-sm sm:text-base"
                         >
                             {loading ? "Please wait..." : (isSignUp ? "Sign Up" : "Login")}
                         </button>
 
-                        <div className="relative">
+                        <div className="relative my-1">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-gray-300"></div>
                             </div>
-                            <div className="relative flex justify-center text-sm">
+                            <div className="relative flex justify-center text-xs sm:text-sm">
                                 <span className="px-2 bg-white text-gray-500">Or continue with</span>
                             </div>
                         </div>
@@ -350,9 +350,9 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
                         <button
                             onClick={handleLogin}
                             disabled={loading}
-                            className="w-full cursor-pointer bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:bg-gray-100"
+                            className="w-full cursor-pointer bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:bg-gray-100 text-sm sm:text-base"
                         >
-                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24">
                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -364,22 +364,22 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
                         <button
                             onClick={handleGuestLogin}
                             disabled={loading}
-                            className="w-full cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                            className="w-full cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-200 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 text-sm sm:text-base"
                         >
                             Continue as Guest
                         </button>
 
-                        <div className="text-center space-y-2">
+                        <div className="text-center space-y-1 sm:space-y-2 pt-1">
                             <button
                                 onClick={() => {
                                     setError("");
                                     setShowForgotPassword(true);
                                 }}
-                                className="text-purple-600 hover:text-purple-700 hover:underline text-sm block w-full transition-colors cursor-pointer"
+                                className="text-purple-600 hover:text-purple-700 hover:underline text-xs sm:text-sm block w-full transition-colors cursor-pointer"
                             >
                                 Forgot Password?
                             </button>
-                            <p className="text-gray-600 text-sm">
+                            <p className="text-gray-600 text-xs sm:text-sm">
                                 {isSignUp ? "Already have an account? " : "Don't have an account? "}
                                 <button
                                     onClick={() => setIsSignUp(!isSignUp)}
