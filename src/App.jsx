@@ -18,6 +18,7 @@ export default function App() {
   const [main, setMain] = useState(false);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Auth state
   const [loggedIn, setLoggedIn] = useState(() => {
@@ -117,6 +118,8 @@ export default function App() {
           toggleDarkMode={() => setDarkMode(prev => !prev)}
           sidebarCollapsed={sidebarCollapsed}
           toggleSidebar={() => setSidebarCollapsed(prev => !prev)}
+          mobileMenuOpen={mobileMenuOpen}
+          setMobileMenuOpen={setMobileMenuOpen}
           loggedIn={loggedIn}
           user={user}
           onLogin={() => setShowLogin(true)}
@@ -130,6 +133,8 @@ export default function App() {
             collapsed={sidebarCollapsed}
             main={main}
             userId={userId}
+            mobileMenuOpen={mobileMenuOpen}
+            setMobileMenuOpen={setMobileMenuOpen}
           />
 
           <main className="flex-1 overflow-y-auto">

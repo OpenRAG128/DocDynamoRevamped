@@ -134,9 +134,9 @@ export default function MainSection({ darkMode, setMain, userId }) {
   }, []);
 
   return (
-    <div className='flex flex-col w-full min-h-full gap-5'>
-      <div className='flex justify-center items-center flex-1 w-full bg-background px-4 sm:px-6 lg:px-8 py-2'>
-        <div className='flex flex-col justify-center items-center sm:gap-6 max-w-7xl w-full'>
+    <div className='flex flex-col w-full min-h-full'>
+      <div className='flex justify-center items-center flex-1 w-full bg-background px-3 sm:px-6 lg:px-8 py-4'>
+        <div className='flex flex-col justify-center items-center gap-4 sm:gap-6 max-w-7xl w-full'>
           {/* Hero Section Header*/}
           <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 font-family-sans mt-2'>
             <img
@@ -155,7 +155,7 @@ export default function MainSection({ darkMode, setMain, userId }) {
           </div>
           {/* Main interaction container */}
           <div
-            className={`p-2 sm:p-6 lg:p-8 flex flex-col justify-center items-center rounded-xl sm:rounded-2xl backdrop-blur-xl transition-all duration-300 w-212.25 relative ${darkMode ? "bg-white/5 border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" : "bg-white/30 border border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]"}`}
+            className={`p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center rounded-xl sm:rounded-2xl backdrop-blur-xl transition-all duration-300 w-full max-w-4xl relative ${darkMode ? "bg-white/5 border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" : "bg-white/30 border border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]"}`}
             style={{
               boxShadow: darkMode
                 ? '0 0 30px rgba(103, 80, 246, 0.4), 0 0 60px rgba(103, 80, 246, 0.3), 0 0 90px rgba(103, 80, 246, 0.2), 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1)'
@@ -180,7 +180,7 @@ export default function MainSection({ darkMode, setMain, userId }) {
             <div className='font-family-display flex flex-col md:flex-row justify-center items-stretch gap-4 sm:gap-6 w-full'>
               {/* Upload Card */}
               <div
-                className={`group relative flex flex-col justify-center items-center min-h-72 sm:h-64 w-full md:w-1/2 lg:w-80 rounded-lg sm:rounded-xl transition-all duration-300 cursor-pointer overflow-hidden
+                className={`group relative flex flex-col justify-center items-center min-h-56 sm:min-h-64 w-full md:w-1/2 rounded-lg sm:rounded-xl transition-all duration-300 cursor-pointer overflow-hidden
                   ${isDragging
                     ? 'border-2 border-dashed border-accent bg-accent/10 scale-105'
                     : darkMode
@@ -251,7 +251,7 @@ export default function MainSection({ darkMode, setMain, userId }) {
 
               {/* Start Chat Card */}
               <div
-                className={`group relative flex flex-col min-h-72 sm:h-64 w-full md:w-1/2 lg:w-87.5 rounded-lg sm:rounded-2xl transition-all duration-300
+                className={`group relative flex flex-col min-h-56 sm:min-h-64 w-full md:w-1/2 rounded-lg sm:rounded-2xl transition-all duration-300
     ${darkMode
                     ? 'bg-gray-900/60 border border-gray-700 hover:border-accent/50'
                     : 'bg-white border border-gray-200 hover:border-accent/50'
@@ -283,76 +283,63 @@ export default function MainSection({ darkMode, setMain, userId }) {
                   >
                     <textarea
                       placeholder="Ask something like “Summarize this document” or “Explain key points”"
-                      className="flex-1 resize-none bg-transparent outline-none text-sm text-text placeholder:text-text/40" value={chatMessage}
+                      className="flex-1 min-h-16 resize-none bg-transparent outline-none text-sm text-text placeholder:text-text/40" value={chatMessage}
                       onChange={(e) => setChatMessage(e.target.value)} />
 
                     {/* Custom Role Dropdown */}
-                    <div ref={dropdownRef} className="relative w-1/2 mt-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className={`w-full px-3 py-1.5 rounded-lg text-sm flex items-center justify-between transition-all ${darkMode
-                          ? 'bg-gray-700 border border-gray-600/70 text-text hover:border-gray-500'
-                          : 'bg-white border border-gray-300 text-text hover:border-gray-400'
-                          }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          {roles.find(r => r.label === selectedRole)?.icon}
-                          {selectedRole}
-                        </span>
-                        <svg
-                          className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                    <div className="flex items-center gap-2 mt-2">
+                      <div ref={dropdownRef} className="relative flex-1 max-w-[180px]">
+                        <button
+                          type="button"
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          className={`w-full px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-all ${darkMode
+                            ? 'bg-gray-700 border border-gray-600/70 text-text hover:border-gray-500'
+                            : 'bg-white border border-gray-300 text-text hover:border-gray-400'
+                            }`}
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
+                          <span className="flex items-center gap-2">
+                            {roles.find(r => r.label === selectedRole)?.icon}
+                            <span className="truncate">{selectedRole}</span>
+                          </span>
+                          <svg
+                            className={`w-4 h-4 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
 
-                      {isDropdownOpen && (
-                        <div className={`absolute z-50 w-full h-20 mt-1 rounded-lg shadow-lg max-h-60 overflow-y-auto ${darkMode
-                          ? 'bg-gray-700 border border-gray-600'
-                          : 'bg-white border border-gray-300'
-                          }`}>
-                          {roles.map((role) => (
-                            <button
-                              key={role.label}
-                              type="button"
-                              onClick={() => {
-                                setSelectedRole(role.label);
-                                setIsDropdownOpen(false);
-                              }}
-                              className={`w-full cursor-pointer px-3 py-2 text-sm flex items-center gap-2 transition-colors ${selectedRole === role.label
-                                ? darkMode
-                                  ? 'bg-accent/90 text-accent'
-                                  : 'bg-accent/10 text-accent'
-                                : darkMode
-                                  ? 'text-text hover:bg-gray-600'
-                                  : 'text-text hover:bg-gray-100'
-                                }`}
-                            >
-                              {role.icon}
-                              {role.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-1">
-                      {error ?
-                        (
-                          <p className='text-red-500 text-xs text-wrap mt-2 px-2'>
-                            {error}
-                          </p>
-                        )
-                        :
-                        (<span className="text-xs text-text/50">
-                          CTRL + V to paste text or links
-                        </span>)
-                      }
+                        {isDropdownOpen && (
+                          <div className={`absolute bottom-full mb-1 z-50 w-full rounded-lg shadow-lg max-h-48 overflow-y-auto ${darkMode
+                            ? 'bg-gray-700 border border-gray-600'
+                            : 'bg-white border border-gray-300'
+                            }`}>
+                            {roles.map((role) => (
+                              <button
+                                key={role.label}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedRole(role.label);
+                                  setIsDropdownOpen(false);
+                                }}
+                                className={`w-full cursor-pointer px-3 py-2 text-sm flex items-center gap-2 transition-colors ${selectedRole === role.label
+                                  ? darkMode
+                                    ? 'bg-accent/90 text-accent'
+                                    : 'bg-accent/10 text-accent'
+                                  : darkMode
+                                    ? 'text-text hover:bg-gray-600'
+                                    : 'text-text hover:bg-gray-100'
+                                  }`}
+                              >
+                                {role.icon}
+                                {role.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
                       {/* Send Button */}
                       <button
@@ -379,11 +366,18 @@ export default function MainSection({ darkMode, setMain, userId }) {
                           });
                           window.location.href = `/chat/${uniqueId}`;
                         }}
-                        className="p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer"
+                        className="p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer shrink-0"
                       >
                         <SendHorizontalIcon size={18} className="text-white" />
                       </button>
                     </div>
+
+                    {/* Footer - Error message */}
+                    {error && (
+                      <p className='text-red-500 text-xs mt-2'>
+                        {error}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

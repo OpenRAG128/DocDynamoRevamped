@@ -2,9 +2,19 @@ import { useState, useRef, useEffect } from 'react';
 import { Sun, Moon, PanelLeftClose, PanelLeftOpen, LogOut, User, ChevronDown } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
-export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar, loggedIn, user, onLogin, onLogout, hasAccount }) {
+export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen, loggedIn, user, onLogin, onLogout, hasAccount }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Handle toggle differently for mobile vs desktop
+  const handleSidebarToggle = () => {
+    // Check if we're on mobile (less than md breakpoint = 768px)
+    if (window.innerWidth < 768) {
+      setMobileMenuOpen(!mobileMenuOpen);
+    } else {
+      toggleSidebar();
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -41,18 +51,28 @@ export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, tog
           DocDynamo
         </span>
         <button
-          onClick={toggleSidebar}
+          onClick={handleSidebarToggle}
           className={`p-2 rounded transition-colors ${darkMode
             ? "hover:bg-gray-800 text-gray-300"
             : "hover:bg-gray-100 text-gray-700"
             }`}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {sidebarCollapsed ? (
-            <PanelLeftOpen size={18} />
-          ) : (
-            <PanelLeftClose size={18} />
-          )}
+          {/* Show different icons on mobile vs desktop */}
+          <span className="hidden md:block">
+            {sidebarCollapsed ? (
+              <PanelLeftOpen size={18} />
+            ) : (
+              <PanelLeftClose size={18} />
+            )}
+          </span>
+          <span className="md:hidden">
+            {mobileMenuOpen ? (
+              <PanelLeftClose size={18} />
+            ) : (
+              <PanelLeftOpen size={18} />
+            )}
+          </span>
         </button>
       </div>
 
