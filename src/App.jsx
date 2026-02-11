@@ -22,28 +22,11 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Auth state
-  const [loggedIn, setLoggedIn] = useState(() => {
-    const saved = localStorage.getItem('loginState')
-    if (saved) {
-      const { loggedIn, timestamp } = JSON.parse(saved)
-      // Check if login is still valid (e.g., within 7 days)
-      const sevenDays = 7 * 24 * 60 * 60 * 1000
-      if (Date.now() - timestamp < sevenDays) {
-        return loggedIn
-      }
-    }
-    return false
-  })
+  // Auth state - initialized as null/false, Firebase will set actual values
+  const [authLoading, setAuthLoading] = useState(true)
+  const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState(null)
-  const [userId, setUserId] = useState(() => {
-    const saved = localStorage.getItem('loginState')
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      return parsed.userId || null
-    }
-    return null
-  })
+  const [userId, setUserId] = useState(null)
   const [showLogin, setShowLogin] = useState(false)
 
   // If user has ever had an account 
@@ -51,10 +34,11 @@ export default function App() {
     return localStorage.getItem('hasUserAccount') === 'true'
   })
 
-  // Listen to Firebase auth state changes
+  // Listen to Firebase auth state changes - this is the source of truth
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
+        // User is authenticated via Firebase
         setUser(firebaseUser)
         setUserId(firebaseUser.uid)
         setLoggedIn(true)
@@ -64,9 +48,30 @@ export default function App() {
           userId: firebaseUser.uid
         }))
       } else {
-        setUser(null)
-        // Don't automatically log out - allow guest mode
+        // No Firebase user - check for guest session in localStorage
+        const saved = localStorage.getItem('loginState')
+        if (saved) {
+          try {
+            const { loggedIn: wasLoggedIn, timestamp, userId: savedUserId } = JSON.parse(saved)
+            const sevenDays = 7 * 24 * 60 * 60 * 1000
+            // Only restore guest sessions (Firebase users must re-authenticate)
+            if (wasLoggedIn && savedUserId?.startsWith('guest_') && Date.now() - timestamp < sevenDays) {
+              setUserId(savedUserId)
+              setLoggedIn(true)
+            } else if (!savedUserId?.startsWith('guest_')) {
+              // Firebase user session expired, clear localStorage
+              localStorage.removeItem('loginState')
+              setUser(null)
+              setUserId(null)
+              setLoggedIn(false)
+            }
+          } catch (error) {
+            console.error('Error parsing loginState:', error)
+            localStorage.removeItem('loginState')
+          }
+        }
       }
+      setAuthLoading(false)
     })
     return () => unsubscribe()
   }, [])
@@ -110,6 +115,15 @@ export default function App() {
         setUserId={setUserId}
         setHasAccount={setHasAccount}
       />
+    )
+  }
+
+  // Show loading state while Firebase checks auth
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
     )
   }
 
