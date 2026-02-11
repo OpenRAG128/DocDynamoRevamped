@@ -8,6 +8,8 @@ import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
 import ChatPage from './components/ChatPage'
 import Login from './components/Login'
+import { onLog } from 'firebase/app'
+import MobileApp from './components/MobileApp'
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -102,6 +104,7 @@ export default function App() {
   if (showLogin && !loggedIn) {
     return (
       <Login
+        
         setLoggedIn={setLoggedIn}
         setShowLogin={setShowLogin}
         setUserId={setUserId}
@@ -112,6 +115,13 @@ export default function App() {
 
   return (
     <Router>
+      <Routes>
+        <Route path="/mobileapp" element={<MobileApp />} />
+      </Routes>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+      </Routes>
+      
       <div className="flex flex-col h-screen bg-background text-text">
         <Header
           darkMode={darkMode}
@@ -129,12 +139,14 @@ export default function App() {
 
         <div className="flex flex-1 overflow-hidden ">
           <Sidebar
+            onLogin={() => setShowLogin(true)}
             darkMode={darkMode}
             collapsed={sidebarCollapsed}
             main={main}
             userId={userId}
             mobileMenuOpen={mobileMenuOpen}
             setMobileMenuOpen={setMobileMenuOpen}
+            hasAccount={hasAccount}
           />
 
           <main className="flex-1 overflow-y-auto">
@@ -149,6 +161,7 @@ export default function App() {
               />
             </Routes>
           </main>
+          
         </div>
       </div>
     </Router>

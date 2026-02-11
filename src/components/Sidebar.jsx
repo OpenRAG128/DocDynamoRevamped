@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { deleteFilesFromIndexedDB, getUserChats, saveUserChats } from "@/util/utils.js";
 
-export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen }) {
+export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [cycle, setCycle] = useState(0);
@@ -253,11 +253,18 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
             <EyeIcon size={18} />
             Add-on info
           </button>
-          <button className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
-            }`}>
-            <Smartphone size={18} />
-            Mobile App
-          </button>
+          <button
+  onClick={() => handleNavigation('/mobileapp')}
+  className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${
+    darkMode
+      ? "text-gray-300 hover:bg-gray-800"
+      : "text-gray-700 hover:bg-gray-100"
+  }`}
+>
+  <Smartphone size={18} />
+  Mobile App
+</button>
+
         </div>
       </div>
 
@@ -292,11 +299,18 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
           </AnimatedList>
         </div>
         <button
-          className={`block w-full text-center py-2 cursor-pointer rounded-full font-medium transition-colors ${darkMode ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-purple-600 text-white hover:bg-purple-700"
-            }`}
-        >
-          Sign up
-        </button>
+  type="button"
+  onClick={() => {
+    if (setMobileMenuOpen) {
+      setMobileMenuOpen(false); // closes sidebar on mobile
+    }
+    onLogin(); // ✅ EXACT same behavior as Header
+  }}
+  className="block w-full text-center py-2 cursor-pointer rounded-full font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+>
+  {hasAccount ? 'Login' : 'Sign up'}
+</button>
+
       </div>
     </>
   );
