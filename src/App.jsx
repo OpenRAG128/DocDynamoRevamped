@@ -8,7 +8,6 @@ import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
 import ChatPage from './components/ChatPage'
 import Login from './components/Login'
-import { onLog } from 'firebase/app'
 import MobileApp from './components/MobileApp'
 
 export default function App() {

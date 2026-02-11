@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, SendHorizontalIcon, ZoomIn, ZoomOut, Download, Search, MousePointer, X, ChevronRight } from 'lucide-react';
+import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight } from 'lucide-react';
 import { getFilesFromIndexedDB, getUserChats } from '@/util/utils.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Sun, Moon, PanelLeftClose, PanelLeftOpen, LogOut, User, ChevronDown } from 'lucide-react';
+import { Sun, Moon, PanelLeftClose, PanelLeftOpen, LogOut, ChevronDown } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
 export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen, loggedIn, user, onLogin, onLogout, hasAccount }) {
