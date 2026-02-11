@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { deleteFilesFromIndexedDB, getUserChats, saveUserChats } from "@/util/utils.js";
 
-export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin }) {
+export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [cycle, setCycle] = useState(0);
@@ -254,16 +254,15 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
             Add-on info
           </button>
           <button
-  onClick={() => handleNavigation('/mobileapp')}
-  className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${
-    darkMode
-      ? "text-gray-300 hover:bg-gray-800"
-      : "text-gray-700 hover:bg-gray-100"
-  }`}
->
-  <Smartphone size={18} />
-  Mobile App
-</button>
+            onClick={() => handleNavigation('/mobileapp')}
+            className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode
+                ? "text-gray-300 hover:bg-gray-800"
+                : "text-gray-700 hover:bg-gray-100"
+              }`}
+          >
+            <Smartphone size={18} />
+            Mobile App
+          </button>
 
         </div>
       </div>
@@ -274,43 +273,44 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
           <AnimatedList key={cycle} delay={2000} className="space-y-2">
             <div
               className={`${glassBase} w-full px-4 py-3 rounded-xl ${darkMode
-                  ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200"
-                  : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
+                ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200"
+                : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
                 }`}
             >
               Know what's better than Static Documents?
             </div>
             <div
               className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium ${darkMode
-                  ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300"
-                  : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800"
+                ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300"
+                : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800"
                 }`}
             >
               DocDynamo
             </div>
             <div
               className={`${glassBase} w-full px-4 py-3 rounded-xl ${darkMode
-                  ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300"
-                  : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
+                ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300"
+                : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
                 }`}
             >
               Coz it makes them talk
             </div>
           </AnimatedList>
         </div>
-        <button
-  type="button"
-  onClick={() => {
-    if (setMobileMenuOpen) {
-      setMobileMenuOpen(false); // closes sidebar on mobile
-    }
-    onLogin(); // ✅ EXACT same behavior as Header
-  }}
-  className="block w-full text-center py-2 cursor-pointer rounded-full font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
->
-  {hasAccount ? 'Login' : 'Sign up'}
-</button>
-
+        {!loggedIn && (
+          <button
+            type="button"
+            onClick={() => {
+              if (setMobileMenuOpen) {
+                setMobileMenuOpen(false); // closes sidebar on mobile
+              }
+              onLogin();
+            }}
+            className="block w-full text-center py-2 cursor-pointer rounded-full font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+          >
+            {hasAccount ? 'Login' : 'Sign up'}
+          </button>
+        )}
       </div>
     </>
   );

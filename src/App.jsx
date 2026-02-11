@@ -104,7 +104,7 @@ export default function App() {
   if (showLogin && !loggedIn) {
     return (
       <Login
-        
+
         setLoggedIn={setLoggedIn}
         setShowLogin={setShowLogin}
         setUserId={setUserId}
@@ -121,7 +121,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
       </Routes>
-      
+
       <div className="flex flex-col h-screen bg-background text-text">
         <Header
           darkMode={darkMode}
@@ -147,6 +147,7 @@ export default function App() {
             mobileMenuOpen={mobileMenuOpen}
             setMobileMenuOpen={setMobileMenuOpen}
             hasAccount={hasAccount}
+            loggedIn={loggedIn}
           />
 
           <main className="flex-1 overflow-y-auto">
@@ -161,7 +162,7 @@ export default function App() {
               />
             </Routes>
           </main>
-          
+
         </div>
       </div>
     </Router>
