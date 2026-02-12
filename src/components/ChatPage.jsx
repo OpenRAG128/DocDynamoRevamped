@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight } from 'lucide-react';
-import { getFilesWithCloudFallback, getUserChats, getChatFromCloud, isGuestUser } from '@/util/utils.js';
+import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload } from 'lucide-react';
+import { getFilesWithCloudFallback, getUserChats, getChatFromCloud, isGuestUser, saveFilesToIndexedDB } from '@/util/utils.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -33,6 +33,8 @@ export default function ChatPage({ darkMode, setMain, userId }) {
     const [showMobilePdf, setShowMobilePdf] = useState(false);
     const [filesNotAvailable, setFilesNotAvailable] = useState(false);
     const mobilePdfContainerRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Track container width for responsive PDF sizing
     useEffect(() => {
@@ -304,6 +306,29 @@ export default function ChatPage({ darkMode, setMain, userId }) {
         link.click();
     };
 
+    const handleReupload = async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        setIsUploading(true);
+        try {
+            await saveFilesToIndexedDB(files, chatId);
+            // Reload files after upload
+            const updatedFiles = await getFilesWithCloudFallback(chatId, userId);
+            setChatFiles(updatedFiles || []);
+            setSelectedFileIndex(0);
+            setFilesNotAvailable(false);
+        } catch (error) {
+            console.error('Error uploading files:', error);
+        } finally {
+            setIsUploading(false);
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
     if (!chat) {
         return (
             <div className={`flex flex-col h-full items-center justify-center ${darkMode ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
@@ -421,9 +446,26 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                                         <p className={`text-xs mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                             Documents are stored locally for privacy. Please re-upload your files to continue.
                                         </p>
-                                        <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                        <p className={`text-xs mb-4 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                                             Expected: {chat.files?.join(', ')}
                                         </p>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            multiple
+                                            accept=".pdf,image/*"
+                                            onChange={handleReupload}
+                                            className="hidden"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={isUploading}
+                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <Upload size={16} />
+                                            {isUploading ? 'Uploading...' : 'Re-upload Files'}
+                                        </button>
                                     </div>
                                 ) : (
                                     <p className={`text-center text-sm leading-relaxed max-w-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -668,9 +710,18 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                                         <p className={`text-sm font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
                                             Files not available
                                         </p>
-                                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        <p className={`text-xs mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                             Please re-upload your files on this device.
                                         </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={isUploading}
+                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <Upload size={16} />
+                                            {isUploading ? 'Uploading...' : 'Re-upload Files'}
+                                        </button>
                                     </div>
                                 ) : (
                                     <p className="text-gray-400 text-sm">No preview available</p>
