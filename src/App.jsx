@@ -126,58 +126,65 @@ export default function App() {
     )
   }
 
+  // Layout wrapper for main app pages
+  const AppLayout = ({ children }) => (
+    <div className="flex flex-col h-screen bg-background text-text">
+      <Header
+        darkMode={darkMode}
+        toggleDarkMode={() => setDarkMode(prev => !prev)}
+        sidebarCollapsed={sidebarCollapsed}
+        toggleSidebar={() => setSidebarCollapsed(prev => !prev)}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        loggedIn={loggedIn}
+        user={user}
+        onLogin={() => setShowLogin(true)}
+        onLogout={handleLogout}
+        hasAccount={hasAccount}
+      />
+
+      <div className="flex flex-1 overflow-hidden ">
+        <Sidebar
+          onLogin={() => setShowLogin(true)}
+          darkMode={darkMode}
+          collapsed={sidebarCollapsed}
+          main={main}
+          userId={userId}
+          mobileMenuOpen={mobileMenuOpen}
+          setMobileMenuOpen={setMobileMenuOpen}
+          hasAccount={hasAccount}
+          loggedIn={loggedIn}
+        />
+
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+
   return (
     <Router>
       <Routes>
         <Route path="/mobileapp" element={<MobileApp />} />
-      </Routes>
-      <Routes>
         <Route path="/login" element={<Login />} />
-      </Routes>
-
-      <div className="flex flex-col h-screen bg-background text-text">
-        <Header
-          darkMode={darkMode}
-          toggleDarkMode={() => setDarkMode(prev => !prev)}
-          sidebarCollapsed={sidebarCollapsed}
-          toggleSidebar={() => setSidebarCollapsed(prev => !prev)}
-          mobileMenuOpen={mobileMenuOpen}
-          setMobileMenuOpen={setMobileMenuOpen}
-          loggedIn={loggedIn}
-          user={user}
-          onLogin={() => setShowLogin(true)}
-          onLogout={handleLogout}
-          hasAccount={hasAccount}
+        <Route
+          path="/"
+          element={
+            <AppLayout>
+              <MainSection darkMode={darkMode} setMain={setMain} userId={userId} />
+            </AppLayout>
+          }
         />
-
-        <div className="flex flex-1 overflow-hidden ">
-          <Sidebar
-            onLogin={() => setShowLogin(true)}
-            darkMode={darkMode}
-            collapsed={sidebarCollapsed}
-            main={main}
-            userId={userId}
-            mobileMenuOpen={mobileMenuOpen}
-            setMobileMenuOpen={setMobileMenuOpen}
-            hasAccount={hasAccount}
-            loggedIn={loggedIn}
-          />
-
-          <main className="flex-1 overflow-y-auto">
-            <Routes>
-              <Route
-                path="/"
-                element={<MainSection darkMode={darkMode} setMain={setMain} userId={userId} />}
-              />
-              <Route
-                path="/chat/:chatId"
-                element={<ChatPage darkMode={darkMode} setMain={setMain} userId={userId} />}
-              />
-            </Routes>
-          </main>
-
-        </div>
-      </div>
+        <Route
+          path="/chat/:chatId"
+          element={
+            <AppLayout>
+              <ChatPage darkMode={darkMode} setMain={setMain} userId={userId} />
+            </AppLayout>
+          }
+        />
+      </Routes>
     </Router>
   )
 }

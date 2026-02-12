@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight } from 'lucide-react';
-import { getFilesFromIndexedDB, getUserChats } from '@/util/utils.js';
+import { getFilesWithCloudFallback, getUserChats, getChatFromCloud, isGuestUser } from '@/util/utils.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -31,6 +31,7 @@ export default function ChatPage({ darkMode, setMain, userId }) {
     const [containerWidth, setContainerWidth] = useState(0);
     const [pdfBaseWidth, setPdfBaseWidth] = useState(0);
     const [showMobilePdf, setShowMobilePdf] = useState(false);
+    const [filesNotAvailable, setFilesNotAvailable] = useState(false);
     const mobilePdfContainerRef = useRef(null);
 
     // Track container width for responsive PDF sizing
@@ -189,30 +190,39 @@ export default function ChatPage({ darkMode, setMain, userId }) {
 
     useEffect(() => {
         setMain(true);
-        try {
-            const savedChats = getUserChats(userId);
-            const found = savedChats.find((c) => c.id === chatId);
+        const loadChat = async () => {
+            try {
+                // First try local storage
+                let found = getUserChats(userId).find((c) => c.id === chatId);
 
-            if (!found) {
-                // Chat not found, navigate to home immediately
+                // If not found locally and user is logged in, try cloud
+                if (!found && !isGuestUser(userId)) {
+                    found = await getChatFromCloud(chatId, userId);
+                }
+
+                if (!found) {
+                    // Chat not found, navigate to home immediately
+                    navigate('/');
+                    return;
+                }
+
+                setChat(found);
+                setMessages([
+                    { id: 'user-initial', role: 'user', text: found.message },
+                    {
+                        id: 'assistant-welcome',
+                        role: 'assistant',
+                        text:
+                            'This is a preview chat layout. In a full version, AI answers and document-grounded insights would appear here.',
+                    },
+                ]);
+            } catch (error) {
+                console.error('Error loading chat:', error);
                 navigate('/');
-                return;
             }
+        };
 
-            setChat(found);
-            setMessages([
-                { id: 'user-initial', role: 'user', text: found.message },
-                {
-                    id: 'assistant-welcome',
-                    role: 'assistant',
-                    text:
-                        'This is a preview chat layout. In a full version, AI answers and document-grounded insights would appear here.',
-                },
-            ]);
-        } catch (error) {
-            console.error('Error loading chat:', error);
-            navigate('/');
-        }
+        loadChat();
     }, [chatId, navigate, userId]);
 
     useEffect(() => {
@@ -220,24 +230,32 @@ export default function ChatPage({ darkMode, setMain, userId }) {
 
         const loadFiles = async () => {
             try {
-                const files = await getFilesFromIndexedDB(chatId);
+                // Use cloud fallback which checks local first
+                const files = await getFilesWithCloudFallback(chatId, userId);
                 if (isMounted) {
                     setChatFiles(files || []);
                     setSelectedFileIndex(0);
+
+                    // Check if chat has files listed but none available locally
+                    if (chat && chat.files && chat.files.length > 0 && (!files || files.length === 0)) {
+                        setFilesNotAvailable(true);
+                    } else {
+                        setFilesNotAvailable(false);
+                    }
                 }
             } catch (error) {
-                console.error('Error loading files from IndexedDB:', error);
+                console.error('Error loading files:', error);
             }
         };
 
-        if (chatId) {
+        if (chatId && chat) {
             loadFiles();
         }
 
         return () => {
             isMounted = false;
         };
-    }, [chatId]);
+    }, [chatId, userId, chat]);
 
     useEffect(() => {
         if (!chatFiles.length) {
@@ -394,9 +412,24 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                             )
                         ) : (
                             <div className="h-full w-full flex items-center justify-center">
-                                <p className={`text-center text-sm leading-relaxed max-w-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    No file preview available yet.
-                                </p>
+                                {filesNotAvailable ? (
+                                    <div className={`text-center p-6 rounded-xl border max-w-sm ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-100 border-gray-200'}`}>
+                                        <FileText size={40} className="mx-auto mb-3 text-accent/60" />
+                                        <p className={`text-sm font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                            Files not available on this device
+                                        </p>
+                                        <p className={`text-xs mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            Documents are stored locally for privacy. Please re-upload your files to continue.
+                                        </p>
+                                        <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            Expected: {chat.files?.join(', ')}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className={`text-center text-sm leading-relaxed max-w-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        No file preview available yet.
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>
@@ -469,7 +502,20 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                                 {m.role === 'user' ? (
                                     <span className="text-xs font-semibold">You</span>
                                 ) : (
-                                    <img src="/logo.svg" alt="DocDynamo" className="w-5 h-5" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                                    <>
+                                        <img
+                                            src="/logo.svg"
+                                            alt="DocDynamo"
+                                            className="w-5 h-5"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                if (e.target.nextSibling) {
+                                                    e.target.nextSibling.style.display = 'block';
+                                                }
+                                            }}
+                                        />
+                                        <span className="text-xs font-semibold hidden">D</span>
+                                    </>
                                 )}
                             </div>
                             {/* Message content */}
@@ -615,7 +661,21 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                                 </Document>
                             )
                         ) : (
-                            <p className="text-gray-400 text-sm">No preview available</p>
+                            <div className="text-center p-6">
+                                {filesNotAvailable ? (
+                                    <div className={`rounded-xl border p-6 max-w-sm ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+                                        <FileText size={40} className="mx-auto mb-3 text-accent/60" />
+                                        <p className={`text-sm font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                            Files not available
+                                        </p>
+                                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            Please re-upload your files on this device.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 text-sm">No preview available</p>
+                                )}
+                            </div>
                         )}
                     </div>
 

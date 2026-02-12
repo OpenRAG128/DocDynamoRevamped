@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
-import { saveFilesToIndexedDB, getUserChats, saveUserChats } from '../util/utils.js';
+import { saveChatWithCloudSync } from '../util/utils.js';
 import {
   FaGraduationCap,
   FaFlask,
@@ -23,6 +23,7 @@ export default function MainSection({ darkMode, setMain, userId }) {
   const [selectedRole, setSelectedRole] = useState("Student");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -32,23 +33,8 @@ export default function MainSection({ darkMode, setMain, userId }) {
 
   const saveChat = async (chatId, chatData) => {
     try {
-      // Save files to IndexedDB
-      if (chatData.files.length > 0) {
-        await saveFilesToIndexedDB(chatData.files, chatId);
-      }
-
-      // Save chat metadata to user-specific localStorage
-      const existingChats = getUserChats(userId);
-      const newChat = {
-        id: chatId,
-        title: chatData.message.substring(0, 50) || 'New Chat',
-        timestamp: new Date().toISOString(),
-        role: chatData.role,
-        files: chatData.files.map(f => f.name),
-        message: chatData.message
-      };
-      existingChats.unshift(newChat);
-      saveUserChats(userId, existingChats);
+      // Use the new cloud sync function which handles both local and cloud storage
+      await saveChatWithCloudSync(chatId, chatData, chatData.files, userId);
     } catch (error) {
       console.error('Error saving chat:', error);
     }
@@ -343,6 +329,7 @@ export default function MainSection({ darkMode, setMain, userId }) {
 
                       {/* Send Button */}
                       <button
+                        disabled={isUploading}
                         onClick={async () => {
                           // Validation checks
                           if (selectedFiles.length === 0) {
@@ -357,18 +344,29 @@ export default function MainSection({ darkMode, setMain, userId }) {
 
                           // Clear any previous errors
                           setError('');
+                          setIsUploading(true);
 
-                          const uniqueId = crypto.randomUUID();
-                          await saveChat(uniqueId, {
-                            message: chatMessage,
-                            role: selectedRole,
-                            files: selectedFiles
-                          });
-                          window.location.href = `/chat/${uniqueId}`;
+                          try {
+                            const uniqueId = crypto.randomUUID();
+                            await saveChat(uniqueId, {
+                              message: chatMessage,
+                              role: selectedRole,
+                              files: selectedFiles
+                            });
+                            window.location.href = `/chat/${uniqueId}`;
+                          } catch (err) {
+                            console.error('Error creating chat:', err);
+                            setError('Failed to create chat. Please try again.');
+                            setIsUploading(false);
+                          }
                         }}
-                        className="p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer shrink-0"
+                        className={`p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer shrink-0 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
                       >
-                        <SendHorizontalIcon size={18} className="text-white" />
+                        {isUploading ? (
+                          <div className="w-[18px] h-[18px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <SendHorizontalIcon size={18} className="text-white" />
+                        )}
                       </button>
                     </div>
 

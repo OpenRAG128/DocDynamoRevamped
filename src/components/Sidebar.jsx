@@ -17,7 +17,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { deleteFilesFromIndexedDB, getUserChats, saveUserChats } from "@/util/utils.js";
+import { deleteChatWithCloudSync, getUserChats, saveUserChats, syncCloudToLocal, isGuestUser, saveChatToCloud } from "@/util/utils.js";
 
 export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn }) {
   const navigate = useNavigate();
@@ -37,13 +37,28 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
   }, []);
 
   useEffect(() => {
-    // Load chats from localStorage for the current user
-    if (userId) {
-      const savedChats = getUserChats(userId);
-      setChats(savedChats);
-    } else {
-      setChats([]);
-    }
+    // Load chats - try cloud first if logged in, then local
+    const loadChats = async () => {
+      if (userId && !isGuestUser(userId)) {
+        // Sync cloud to local for logged-in users
+        const cloudChats = await syncCloudToLocal(userId);
+        if (cloudChats && cloudChats.length > 0) {
+          setChats(cloudChats);
+        } else {
+          // Fallback to local if cloud is empty
+          const localChats = getUserChats(userId);
+          setChats(localChats);
+        }
+      } else if (userId) {
+        // Guest user - just load local
+        const savedChats = getUserChats(userId);
+        setChats(savedChats);
+      } else {
+        setChats([]);
+      }
+    };
+
+    loadChats();
   }, [userId]);
 
   useEffect(() => {
@@ -58,7 +73,7 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleRenameChat = (chatId) => {
+  const handleRenameChat = async (chatId) => {
     const newTitle = prompt('Enter new chat name:');
     if (newTitle && newTitle.trim()) {
       const updatedChats = chats.map(chat =>
@@ -66,6 +81,12 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
       );
       setChats(updatedChats);
       saveUserChats(userId, updatedChats);
+
+      // Also update in cloud
+      const updatedChat = updatedChats.find(c => c.id === chatId);
+      if (updatedChat && !isGuestUser(userId)) {
+        await saveChatToCloud(updatedChat, userId);
+      }
     }
     setOpenMenuId(null);
   };
@@ -89,8 +110,8 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
 
   const handleDeleteChat = async (chatId) => {
     if (confirm('Are you sure you want to delete this chat?')) {
-      await deleteFilesFromIndexedDB(chatId);
-      const updatedChats = chats.filter(chat => chat.id !== chatId);
+      // Use cloud sync delete which handles both local and cloud
+      const updatedChats = await deleteChatWithCloudSync(chatId, userId);
 
       // Check if we're currently viewing the deleted chat or if no chats remain
       const isViewingDeletedChat = location.pathname === `/chat/${chatId}`;
@@ -256,8 +277,8 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
           <button
             onClick={() => handleNavigation('/mobileapp')}
             className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode
-                ? "text-gray-300 hover:bg-gray-800"
-                : "text-gray-700 hover:bg-gray-100"
+              ? "text-gray-300 hover:bg-gray-800"
+              : "text-gray-700 hover:bg-gray-100"
               }`}
           >
             <Smartphone size={18} />
