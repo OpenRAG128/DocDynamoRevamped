@@ -1,7 +1,6 @@
 import { signInWithPopup, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth, googleProvider } from "../util/firebase.js";
 import { generateGuestId } from "../util/utils.js";
-import brainIcon from "../assets/logo.svg";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
@@ -233,7 +232,7 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
             {/* Left side - Illustration - Hidden on mobile */}
             <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 relative overflow-hidden">
                 <div className="relative z-10 flex flex-col items-center">
-                    <img src={brainIcon} alt="Brain Illustration" className="w-48 h-48 mb-6 drop-shadow-lg" />
+                    <img src="/logo.svg" alt="Brain Illustration" className="w-48 h-48 mb-6 drop-shadow-lg" />
                     <h1 className="text-3xl sm:text-5xl md:text-[58px] font-display font-bold text-purple-600 flex justify-center items-center gap-2">
                         DocDynamo
                     </h1>
@@ -258,7 +257,7 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
                 <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 md:p-8 w-full max-w-md z-10 my-auto">
                     {/* Mobile header with logo */}
                     <div className="lg:hidden text-center mb-4 sm:mb-6">
-                        <img src={brainIcon} alt="DocDynamo" className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2" />
+                        <img src="/logo.svg" alt="DocDynamo" className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2" />
                         <h1 className="text-xl sm:text-2xl font-bold text-purple-600">DocDynamo</h1>
                         <p className="text-xs sm:text-sm text-gray-600">AI-Powered Document Intelligence</p>
                     </div>

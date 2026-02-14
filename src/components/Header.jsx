@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { Sun, Moon, PanelLeftClose, PanelLeftOpen, LogOut, ChevronDown } from 'lucide-react';
-import logo from '../assets/logo.svg';
 
 export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, toggleSidebar, mobileMenuOpen, setMobileMenuOpen, loggedIn, user, onLogin, onLogout, hasAccount }) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -69,7 +68,7 @@ export default function Header({ darkMode, toggleDarkMode, sidebarCollapsed, tog
         </button>
 
         {/* Logo and title */}
-        <img src={logo} alt="DocDynamo Logo" className='h-6 w-6 sm:h-7 sm:w-7' />
+        <img src="/logo.svg" alt="DocDynamo Logo" className='h-6 w-6 sm:h-7 sm:w-7' />
         <span
           className={`text-lg sm:text-2xl font-family-sans font-extrabold ${darkMode ? "text-purple-400" : "text-purple-600"
             }`}
