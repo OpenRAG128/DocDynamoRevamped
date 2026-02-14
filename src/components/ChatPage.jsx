@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload } from 'lucide-react';
+import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload, Loader2 } from 'lucide-react';
 import { getFilesWithCloudFallback, getUserChats, getChatFromCloud, isGuestUser, saveFilesToIndexedDB } from '@/util/utils.js';
+import { queryDocument } from '@/util/api.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -35,6 +36,8 @@ export default function ChatPage({ darkMode, setMain, userId }) {
     const mobilePdfContainerRef = useRef(null);
     const fileInputRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const initialQuerySent = useRef(false);
 
     // Track container width for responsive PDF sizing
     useEffect(() => {
@@ -209,15 +212,9 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                 }
 
                 setChat(found);
-                setMessages([
-                    { id: 'user-initial', role: 'user', text: found.message },
-                    {
-                        id: 'assistant-welcome',
-                        role: 'assistant',
-                        text:
-                            'This is a preview chat layout. In a full version, AI answers and document-grounded insights would appear here.',
-                    },
-                ]);
+                setMessages([{ id: 'user-initial', role: 'user', text: found.message }]);
+                // Reset initial query flag when chat changes
+                initialQuerySent.current = false;
             } catch (error) {
                 console.error('Error loading chat:', error);
                 navigate('/');
@@ -259,6 +256,52 @@ export default function ChatPage({ darkMode, setMain, userId }) {
         };
     }, [chatId, userId, chat]);
 
+    // Send initial query to backend once files are loaded
+    useEffect(() => {
+        const sendInitialQuery = async () => {
+            if (!chat?.message || !chatFiles.length || initialQuerySent.current || isLoading) {
+                return;
+            }
+
+            const currentFile = chatFiles[0];
+            if (!currentFile?.data) return;
+
+            initialQuerySent.current = true;
+            setIsLoading(true);
+
+            try {
+                const fileBlob = currentFile.data instanceof Blob
+                    ? currentFile.data
+                    : new Blob([currentFile.data], { type: currentFile.type || 'application/octet-stream' });
+
+                const response = await queryDocument({
+                    doc: new File([fileBlob], currentFile.name, { type: fileBlob.type }),
+                    question: chat.message,
+                    persona: chat.role || 'Student',
+                });
+
+                const assistantMessage = {
+                    id: `assistant-${Date.now()}`,
+                    role: 'assistant',
+                    text: response.answer || response.response || 'No response received.',
+                };
+                setMessages((prev) => [...prev, assistantMessage]);
+            } catch (error) {
+                console.error('Initial query error:', error);
+                const errorMessage = {
+                    id: `error-${Date.now()}`,
+                    role: 'assistant',
+                    text: `Sorry, I encountered an error: ${error.message}. Please try again.`,
+                };
+                setMessages((prev) => [...prev, errorMessage]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        sendInitialQuery();
+    }, [chat, chatFiles, isLoading]);
+
     useEffect(() => {
         if (!chatFiles.length) {
             setPreviewUrl('');
@@ -281,15 +324,54 @@ export default function ChatPage({ darkMode, setMain, userId }) {
         };
     }, [chatFiles, selectedFileIndex]);
 
-    const handleSend = () => {
-        if (!input.trim()) return;
-        const newMessage = {
+    const handleSend = async () => {
+        if (!input.trim() || isLoading) return;
+
+        const userMessage = {
             id: `user-${Date.now()}`,
             role: 'user',
             text: input.trim(),
         };
-        setMessages((prev) => [...prev, newMessage]);
+        setMessages((prev) => [...prev, userMessage]);
+        const question = input.trim();
         setInput('');
+        setIsLoading(true);
+
+        try {
+            // Get the current document file
+            const currentFile = chatFiles[selectedFileIndex];
+            if (!currentFile?.data) {
+                throw new Error('No document available to query');
+            }
+
+            // Create a proper File/Blob for the API
+            const fileBlob = currentFile.data instanceof Blob
+                ? currentFile.data
+                : new Blob([currentFile.data], { type: currentFile.type || 'application/octet-stream' });
+
+            const response = await queryDocument({
+                doc: new File([fileBlob], currentFile.name, { type: fileBlob.type }),
+                question,
+                persona: chat.role || 'Student',
+            });
+
+            const assistantMessage = {
+                id: `assistant-${Date.now()}`,
+                role: 'assistant',
+                text: response.answer || response.response || 'No response received.',
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+        } catch (error) {
+            console.error('Query error:', error);
+            const errorMessage = {
+                id: `error-${Date.now()}`,
+                role: 'assistant',
+                text: `Sorry, I encountered an error: ${error.message}. Please try again.`,
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -575,6 +657,19 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                             </div>
                         </div>
                     ))}
+                    {/* Loading indicator */}
+                    {isLoading && (
+                        <div className="flex gap-3">
+                            <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${darkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
+                                <img src="/logo.svg" alt="DocDynamo" className="w-5 h-5" />
+                            </div>
+                            <div className={`inline-flex items-center gap-1 rounded-2xl px-4 py-3 ${darkMode ? 'bg-gray-800/80' : 'bg-white shadow-sm border border-gray-100'}`}>
+                                <span className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Suggested prompts - Card style like the screenshot */}
@@ -616,18 +711,19 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
                             placeholder="Ask any question..."
-                            className={`flex-1 bg-transparent outline-none text-sm ${darkMode ? 'text-gray-100 placeholder:text-gray-500' : 'text-gray-800 placeholder:text-gray-400'}`}
+                            disabled={isLoading}
+                            className={`flex-1 bg-transparent outline-none text-sm ${darkMode ? 'text-gray-100 placeholder:text-gray-500' : 'text-gray-800 placeholder:text-gray-400'} disabled:opacity-50`}
                         />
                         <button
                             type="button"
                             onClick={handleSend}
-                            className={`p-2 rounded-lg transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${input.trim()
+                            className={`p-2 rounded-lg transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${input.trim() && !isLoading
                                 ? 'bg-gradient-to-r from-[#3258d5] to-accent text-white hover:shadow-md'
                                 : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-400'
                                 }`}
-                            disabled={!input.trim()}
+                            disabled={!input.trim() || isLoading}
                         >
-                            <SendHorizontalIcon size={18} />
+                            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <SendHorizontalIcon size={18} />}
                         </button>
                     </div>
                 </div>
