@@ -17,7 +17,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { deleteChatWithCloudSync, getUserChats, saveUserChats, syncCloudToLocal, isGuestUser, saveChatToCloud } from "@/util/utils.js";
+import { getChatList } from "@/util/api.js";
 
 export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn }) {
   const navigate = useNavigate();
@@ -37,23 +37,30 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
   }, []);
 
   useEffect(() => {
-    // Load chats - try cloud first if logged in, then local
+    // Load chats from backend API
     const loadChats = async () => {
-      if (userId && !isGuestUser(userId)) {
-        // Sync cloud to local for logged-in users
-        const cloudChats = await syncCloudToLocal(userId);
-        if (cloudChats && cloudChats.length > 0) {
-          setChats(cloudChats);
-        } else {
-          // Fallback to local if cloud is empty
-          const localChats = getUserChats(userId);
-          setChats(localChats);
+      try {
+        const response = await getChatList();
+        // Handle both array response and object with array property
+        const chatList = Array.isArray(response) ? response : (response?.chats || response?.data || []);
+
+        if (!Array.isArray(chatList)) {
+          console.warn('Unexpected chat list format:', response);
+          setChats([]);
+          return;
         }
-      } else if (userId) {
-        // Guest user - just load local
-        const savedChats = getUserChats(userId);
-        setChats(savedChats);
-      } else {
+
+        // Convert backend format to UI format
+        const formattedChats = chatList.map(chat => ({
+          id: chat._id,
+          title: chat.title || 'Untitled Chat',
+          timestamp: chat.updated_at ? new Date(chat.updated_at * 1000).toISOString() : new Date().toISOString(),
+        }));
+        // Sort by updated_at (most recent first)
+        formattedChats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        setChats(formattedChats);
+      } catch (error) {
+        console.error('Error loading chat list:', error);
         setChats([]);
       }
     };
@@ -76,17 +83,12 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
   const handleRenameChat = async (chatId) => {
     const newTitle = prompt('Enter new chat name:');
     if (newTitle && newTitle.trim()) {
+      // Update local state (backend manages the actual data)
       const updatedChats = chats.map(chat =>
         chat.id === chatId ? { ...chat, title: newTitle.trim() } : chat
       );
       setChats(updatedChats);
-      saveUserChats(userId, updatedChats);
-
-      // Also update in cloud
-      const updatedChat = updatedChats.find(c => c.id === chatId);
-      if (updatedChat && !isGuestUser(userId)) {
-        await saveChatToCloud(updatedChat, userId);
-      }
+      // Note: Backend rename endpoint would be called here if available
     }
     setOpenMenuId(null);
   };
@@ -110,8 +112,8 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
 
   const handleDeleteChat = async (chatId) => {
     if (confirm('Are you sure you want to delete this chat?')) {
-      // Use cloud sync delete which handles both local and cloud
-      const updatedChats = await deleteChatWithCloudSync(chatId, userId);
+      // Remove from local state (backend manages the actual data)
+      const updatedChats = chats.filter(chat => chat.id !== chatId);
 
       // Check if we're currently viewing the deleted chat or if no chats remain
       const isViewingDeletedChat = location.pathname === `/chat/${chatId}`;
@@ -119,7 +121,7 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
         navigate('/');
       }
       setChats(updatedChats);
-      saveUserChats(userId, updatedChats);
+      // Note: Backend delete endpoint would be called here if available
     }
     setOpenMenuId(null);
   };

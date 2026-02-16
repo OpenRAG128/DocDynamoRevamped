@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload, Loader2 } from 'lucide-react';
-import { getFilesWithCloudFallback, getUserChats, getChatFromCloud, isGuestUser, saveFilesToIndexedDB } from '@/util/utils.js';
-import { queryDocument } from '@/util/api.js';
+import { getFilesFromIndexedDB, saveFilesToIndexedDB } from '@/util/utils.js';
+import { sendChatMessage, getChatMessages } from '@/util/api.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -12,10 +12,10 @@ import 'react-pdf/dist/Page/TextLayer.css';
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 
-export default function ChatPage({ darkMode, setMain, userId }) {
+export default function ChatPage({ darkMode, setMain }) {
     const { chatId } = useParams();
     const navigate = useNavigate();
-    const [chat, setChat] = useState(null);
+    const [chatRole] = useState('Student');
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [chatFiles, setChatFiles] = useState([]);
@@ -37,7 +37,7 @@ export default function ChatPage({ darkMode, setMain, userId }) {
     const fileInputRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const initialQuerySent = useRef(false);
+    const [chatNotFound, setChatNotFound] = useState(false);
 
     // Track container width for responsive PDF sizing
     useEffect(() => {
@@ -193,50 +193,53 @@ export default function ChatPage({ darkMode, setMain, userId }) {
         return () => clearTimeout(timeout);
     }, [searchQuery, totalPages, zoom]);
 
+    // Load messages from backend API
     useEffect(() => {
         setMain(true);
-        const loadChat = async () => {
+        const loadChatMessages = async () => {
+            if (!chatId) return;
+
+            setIsLoading(true);
             try {
-                // First try local storage
-                let found = getUserChats(userId).find((c) => c.id === chatId);
+                const data = await getChatMessages(chatId);
 
-                // If not found locally and user is logged in, try cloud
-                if (!found && !isGuestUser(userId)) {
-                    found = await getChatFromCloud(chatId, userId);
-                }
-
-                if (!found) {
-                    // Chat not found, navigate to home immediately
-                    navigate('/');
+                if (!data || !data.messages) {
+                    setChatNotFound(true);
                     return;
                 }
 
-                setChat(found);
-                setMessages([{ id: 'user-initial', role: 'user', text: found.message }]);
-                // Reset initial query flag when chat changes
-                initialQuerySent.current = false;
+                // Convert backend messages to UI format
+                const formattedMessages = data.messages.map((msg, index) => ({
+                    id: `${msg.role}-${msg.created_at || index}`,
+                    role: msg.role,
+                    text: msg.content,
+                }));
+
+                setMessages(formattedMessages);
             } catch (error) {
-                console.error('Error loading chat:', error);
-                navigate('/');
+                console.error('Error loading chat messages:', error);
+                setChatNotFound(true);
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        loadChat();
-    }, [chatId, navigate, userId]);
+        loadChatMessages();
+    }, [chatId, setMain]);
 
+    // Load files from local IndexedDB (files are stored locally for preview)
     useEffect(() => {
         let isMounted = true;
 
         const loadFiles = async () => {
             try {
-                // Use cloud fallback which checks local first
-                const files = await getFilesWithCloudFallback(chatId, userId);
+                const files = await getFilesFromIndexedDB(chatId);
                 if (isMounted) {
                     setChatFiles(files || []);
                     setSelectedFileIndex(0);
 
-                    // Check if chat has files listed but none available locally
-                    if (chat && chat.files && chat.files.length > 0 && (!files || files.length === 0)) {
+                    // Check if files are available locally
+                    if (!files || files.length === 0) {
                         setFilesNotAvailable(true);
                     } else {
                         setFilesNotAvailable(false);
@@ -247,60 +250,14 @@ export default function ChatPage({ darkMode, setMain, userId }) {
             }
         };
 
-        if (chatId && chat) {
+        if (chatId) {
             loadFiles();
         }
 
         return () => {
             isMounted = false;
         };
-    }, [chatId, userId, chat]);
-
-    // Send initial query to backend once files are loaded
-    useEffect(() => {
-        const sendInitialQuery = async () => {
-            if (!chat?.message || !chatFiles.length || initialQuerySent.current || isLoading) {
-                return;
-            }
-
-            const currentFile = chatFiles[0];
-            if (!currentFile?.data) return;
-
-            initialQuerySent.current = true;
-            setIsLoading(true);
-
-            try {
-                const fileBlob = currentFile.data instanceof Blob
-                    ? currentFile.data
-                    : new Blob([currentFile.data], { type: currentFile.type || 'application/octet-stream' });
-
-                const response = await queryDocument({
-                    doc: new File([fileBlob], currentFile.name, { type: fileBlob.type }),
-                    question: chat.message,
-                    persona: chat.role || 'Student',
-                });
-
-                const assistantMessage = {
-                    id: `assistant-${Date.now()}`,
-                    role: 'assistant',
-                    text: response.answer || response.response || 'No response received.',
-                };
-                setMessages((prev) => [...prev, assistantMessage]);
-            } catch (error) {
-                console.error('Initial query error:', error);
-                const errorMessage = {
-                    id: `error-${Date.now()}`,
-                    role: 'assistant',
-                    text: `Sorry, I encountered an error: ${error.message}. Please try again.`,
-                };
-                setMessages((prev) => [...prev, errorMessage]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        sendInitialQuery();
-    }, [chat, chatFiles, isLoading]);
+    }, [chatId]);
 
     useEffect(() => {
         if (!chatFiles.length) {
@@ -338,27 +295,17 @@ export default function ChatPage({ darkMode, setMain, userId }) {
         setIsLoading(true);
 
         try {
-            // Get the current document file
-            const currentFile = chatFiles[selectedFileIndex];
-            if (!currentFile?.data) {
-                throw new Error('No document available to query');
-            }
-
-            // Create a proper File/Blob for the API
-            const fileBlob = currentFile.data instanceof Blob
-                ? currentFile.data
-                : new Blob([currentFile.data], { type: currentFile.type || 'application/octet-stream' });
-
-            const response = await queryDocument({
-                doc: new File([fileBlob], currentFile.name, { type: fileBlob.type }),
+            // Send message via backend API
+            const response = await sendChatMessage({
+                chatId,
                 question,
-                persona: chat.role || 'Student',
+                persona: chatRole,
             });
 
             const assistantMessage = {
                 id: `assistant-${Date.now()}`,
                 role: 'assistant',
-                text: response.answer || response.response || 'No response received.',
+                text: response.response || 'No response received.',
             };
             setMessages((prev) => [...prev, assistantMessage]);
         } catch (error) {
@@ -396,7 +343,7 @@ export default function ChatPage({ darkMode, setMain, userId }) {
         try {
             await saveFilesToIndexedDB(files, chatId);
             // Reload files after upload
-            const updatedFiles = await getFilesWithCloudFallback(chatId, userId);
+            const updatedFiles = await getFilesFromIndexedDB(chatId);
             setChatFiles(updatedFiles || []);
             setSelectedFileIndex(0);
             setFilesNotAvailable(false);
@@ -411,7 +358,7 @@ export default function ChatPage({ darkMode, setMain, userId }) {
         }
     };
 
-    if (!chat) {
+    if (chatNotFound) {
         return (
             <div className={`flex flex-col h-full items-center justify-center ${darkMode ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
                 <p className="mb-4 text-sm">Chat not found or has been cleared.</p>
@@ -459,7 +406,7 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                         </select>
                     ) : (
                         <span className={`text-sm font-medium truncate max-w-xs ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {chatFiles?.[0]?.name || chat.files?.[0] || 'Uploaded file'}
+                            {chatFiles?.[0]?.name || 'Uploaded file'}
                         </span>
                     )}
                 </div>
@@ -527,9 +474,6 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                                         </p>
                                         <p className={`text-xs mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                             Documents are stored locally for privacy. Please re-upload your files to continue.
-                                        </p>
-                                        <p className={`text-xs mb-4 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                                            Expected: {chat.files?.join(', ')}
                                         </p>
                                         <input
                                             ref={fileInputRef}
@@ -600,17 +544,17 @@ export default function ChatPage({ darkMode, setMain, userId }) {
                     >
                         <FileText size={16} className="text-accent shrink-0" />
                         <span className="text-sm font-medium truncate flex-1 text-left">
-                            {chatFiles?.[0]?.name || chat.files?.[0] || 'Document'}
+                            {chatFiles?.[0]?.name || 'Document'}
                         </span>
                         <ChevronRight size={16} className="shrink-0 text-text/40" />
                     </button>
                     {/* Desktop: Just show role */}
                     <div className="hidden md:block flex-1">
-                        <p className="text-xs text-text/60">Chatting as <span className="font-medium text-text">{chat.role}</span></p>
+                        <p className="text-xs text-text/60">Chatting as <span className="font-medium text-text">{chatRole}</span></p>
                     </div>
                     {/* Mobile: Role badge */}
                     <div className={`md:hidden px-2 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
-                        {chat.role}
+                        {chatRole}
                     </div>
                 </div>
 

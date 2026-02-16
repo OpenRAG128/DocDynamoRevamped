@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon } from 'lucide-react';
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
-import { saveChatWithCloudSync } from '../util/utils.js';
+import { saveFilesToIndexedDB } from '../util/utils.js';
+import { createChat, sendChatMessage } from '../util/api.js';
 import {
   FaGraduationCap,
   FaFlask,
@@ -16,7 +17,7 @@ import {
 } from "react-icons/fa";
 import Footer from './Footer.jsx';
 
-export default function MainSection({ darkMode, setMain, userId }) {
+export default function MainSection({ darkMode, setMain }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [error, setError] = useState('');
@@ -31,14 +32,6 @@ export default function MainSection({ darkMode, setMain, userId }) {
     setMain(false);
   }, []);
 
-  const saveChat = async (chatId, chatData) => {
-    try {
-      // Use the new cloud sync function which handles both local and cloud storage
-      await saveChatWithCloudSync(chatId, chatData, chatData.files, userId);
-    } catch (error) {
-      console.error('Error saving chat:', error);
-    }
-  };
   const roles = [
     { label: "Student", icon: <FaGraduationCap /> },
     { label: "Researcher", icon: <FaFlask /> },
@@ -347,13 +340,22 @@ export default function MainSection({ darkMode, setMain, userId }) {
                           setIsUploading(true);
 
                           try {
-                            const uniqueId = crypto.randomUUID();
-                            await saveChat(uniqueId, {
-                              message: chatMessage,
-                              role: selectedRole,
-                              files: selectedFiles
+                            // Step 1: Create chat via backend API
+                            const { chat_id } = await createChat();
+
+                            // Step 2: Save files to local IndexedDB for preview
+                            await saveFilesToIndexedDB(selectedFiles, chat_id);
+
+                            // Step 3: Send initial message with documents
+                            await sendChatMessage({
+                              chatId: chat_id,
+                              question: chatMessage,
+                              persona: selectedRole,
+                              docs: selectedFiles,
                             });
-                            window.location.href = `/chat/${uniqueId}`;
+
+                            // Step 4: Navigate to chat page
+                            window.location.href = `/chat/${chat_id}`;
                           } catch (err) {
                             console.error('Error creating chat:', err);
                             setError('Failed to create chat. Please try again.');

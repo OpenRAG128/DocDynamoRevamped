@@ -172,7 +172,7 @@ export default function App() {
           path="/"
           element={
             <AppLayout>
-              <MainSection darkMode={darkMode} setMain={setMain} userId={userId} />
+              <MainSection darkMode={darkMode} setMain={setMain} />
             </AppLayout>
           }
         />
@@ -180,7 +180,7 @@ export default function App() {
           path="/chat/:chatId"
           element={
             <AppLayout>
-              <ChatPage darkMode={darkMode} setMain={setMain} userId={userId} />
+              <ChatPage darkMode={darkMode} setMain={setMain} />
             </AppLayout>
           }
         />
