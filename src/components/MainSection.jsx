@@ -209,11 +209,10 @@ export default function MainSection({ darkMode, setMain }) {
                       </p>
                       {selectedFiles &&
                         selectedFiles.map((file) => {
-                          return <p className="text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate w-full max-w-xs" title={file.name}>
+                          return <p key={file.name} className="text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate w-full max-w-xs" title={file.name}>
                             {file.name}
                           </p>
-                        })
-                      }
+                        })}
                     </div>
                     <button
                       type="button"
