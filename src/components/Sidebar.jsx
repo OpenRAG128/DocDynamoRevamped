@@ -154,7 +154,11 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
                   >
                     <MessageCircle size={16} className="mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="truncate w-11/12">{chat.title}</p>
+                      <p className="truncate w-11/12">
+                        {chat.title === 'New Chat' && chat.firstMessage
+                          ? chat.firstMessage.slice(0, 50) + (chat.firstMessage.length > 50 ? '...' : '')
+                          : chat.title}
+                      </p>
                       <p className={`text-xs mt-0.5 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
                         {new Date(chat.timestamp).toLocaleDateString()}
                       </p>
