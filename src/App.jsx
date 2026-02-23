@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './util/firebase'
 import { clearUserChats } from './util/utils'
+import { getChatList } from './util/api'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
@@ -33,9 +34,34 @@ export default function App() {
     return localStorage.getItem('hasUserAccount') === 'true'
   })
 
+  // Preloaded chats for sidebar
+  const [preloadedChats, setPreloadedChats] = useState([])
+
+  // Helper to load and format chats
+  const loadChats = async () => {
+    try {
+      const response = await getChatList()
+      const chatList = Array.isArray(response) ? response : (response?.chats || response?.data || [])
+      if (!Array.isArray(chatList)) {
+        setPreloadedChats([])
+        return
+      }
+      const formattedChats = chatList.map(chat => ({
+        id: chat._id,
+        title: chat.title || 'Untitled Chat',
+        timestamp: chat.updated_at ? new Date(chat.updated_at * 1000).toISOString() : new Date().toISOString(),
+      }))
+      formattedChats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      setPreloadedChats(formattedChats)
+    } catch (error) {
+      console.error('Error preloading chats:', error)
+      setPreloadedChats([])
+    }
+  }
+
   // Listen to Firebase auth state changes - this is the source of truth
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // User is authenticated via Firebase
         setUser(firebaseUser)
@@ -46,6 +72,8 @@ export default function App() {
           timestamp: Date.now(),
           userId: firebaseUser.uid
         }))
+        // Preload chats for authenticated user
+        await loadChats()
       } else {
         // No Firebase user - check for guest session in localStorage
         const saved = localStorage.getItem('loginState')
@@ -57,6 +85,8 @@ export default function App() {
             if (wasLoggedIn && savedUserId?.startsWith('guest_') && Date.now() - timestamp < sevenDays) {
               setUserId(savedUserId)
               setLoggedIn(true)
+              // Preload chats for guest user
+              await loadChats()
             } else if (!savedUserId?.startsWith('guest_')) {
               // Firebase user session expired, clear localStorage
               localStorage.removeItem('loginState')
@@ -154,6 +184,7 @@ export default function App() {
           setMobileMenuOpen={setMobileMenuOpen}
           hasAccount={hasAccount}
           loggedIn={loggedIn}
+          initialChats={preloadedChats}
         />
 
         <main className="flex-1 overflow-y-auto">

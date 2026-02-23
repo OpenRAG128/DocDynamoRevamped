@@ -15,7 +15,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.vers
 export default function ChatPage({ darkMode, setMain }) {
     const { chatId } = useParams();
     const navigate = useNavigate();
-    const [chatRole] = useState('Student');
+    const [chatRole] = useState('');
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [chatFiles, setChatFiles] = useState([]);
@@ -361,13 +361,14 @@ export default function ChatPage({ darkMode, setMain }) {
     if (chatNotFound) {
         return (
             <div className={`flex flex-col h-full items-center justify-center ${darkMode ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
-                <p className="mb-4 text-sm">Chat not found or has been cleared.</p>
+                <p className="mb-2 text-sm font-medium">Chat not found</p>
+                <p className="mb-4 text-xs text-text/60 text-center max-w-xs">This chat may have expired or doesn&apos;t exist. Please start a new conversation.</p>
                 <button
                     type="button"
                     onClick={() => navigate('/')}
                     className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer"
                 >
-                    Go back home
+                    Start new chat
                 </button>
             </div>
         );

@@ -3,7 +3,7 @@ import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizon
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
 import { saveFilesToIndexedDB } from '../util/utils.js';
-import { createChat, sendChatMessage } from '../util/api.js';
+import { queryDocument } from '../util/api.js';
 import {
   FaGraduationCap,
   FaFlask,
@@ -339,21 +339,17 @@ export default function MainSection({ darkMode, setMain }) {
                           setIsUploading(true);
 
                           try {
-                            // Step 1: Create chat via backend API
-                            const { chat_id } = await createChat();
+                            // Step 1: Send query with docs - creates chat and returns chat_id
+                            const { chat_id } = await queryDocument({
+                              docs: selectedFiles,
+                              question: chatMessage,
+                              persona: selectedRole,
+                            });
 
                             // Step 2: Save files to local IndexedDB for preview
                             await saveFilesToIndexedDB(selectedFiles, chat_id);
 
-                            // Step 3: Send initial message with documents
-                            await sendChatMessage({
-                              chatId: chat_id,
-                              question: chatMessage,
-                              persona: selectedRole,
-                              docs: selectedFiles,
-                            });
-
-                            // Step 4: Navigate to chat page
+                            // Step 3: Navigate to chat page
                             window.location.href = `/chat/${chat_id}`;
                           } catch (err) {
                             console.error('Error creating chat:', err);

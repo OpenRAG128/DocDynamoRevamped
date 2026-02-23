@@ -17,13 +17,12 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { getChatList } from "@/util/api.js";
 
-export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn }) {
+export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn, initialChats = [] }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [cycle, setCycle] = useState(0);
-  const [chats, setChats] = useState([]);
+  const [chats, setChats] = useState(initialChats);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
@@ -36,37 +35,12 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
     return () => clearInterval(interval);
   }, []);
 
+  // Sync with initialChats when they change (preloaded from App)
   useEffect(() => {
-    // Load chats from backend API
-    const loadChats = async () => {
-      try {
-        const response = await getChatList();
-        // Handle both array response and object with array property
-        const chatList = Array.isArray(response) ? response : (response?.chats || response?.data || []);
-
-        if (!Array.isArray(chatList)) {
-          console.warn('Unexpected chat list format:', response);
-          setChats([]);
-          return;
-        }
-
-        // Convert backend format to UI format
-        const formattedChats = chatList.map(chat => ({
-          id: chat._id,
-          title: chat.title || 'Untitled Chat',
-          timestamp: chat.updated_at ? new Date(chat.updated_at * 1000).toISOString() : new Date().toISOString(),
-        }));
-        // Sort by updated_at (most recent first)
-        formattedChats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        setChats(formattedChats);
-      } catch (error) {
-        console.error('Error loading chat list:', error);
-        setChats([]);
-      }
-    };
-
-    loadChats();
-  }, [userId]);
+    if (initialChats.length > 0) {
+      setChats(initialChats);
+    }
+  }, [initialChats]);
 
   useEffect(() => {
     // Close menu when clicking outside

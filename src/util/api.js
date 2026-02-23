@@ -5,21 +5,25 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 /**
- * Send a query to the backend with document(s) and get AI response
+ * Send initial query with document(s) - creates a new chat session
  * @param {Object} params
- * @param {File|Blob} params.doc - The document file to query
+ * @param {File|File[]} params.docs - The document file(s) to query
  * @param {string} params.question - The user's question
  * @param {string} params.persona - The chat persona (Student, Researcher, etc.)
- * @returns {Promise<{answer: string}>}
+ * @returns {Promise<{answer: string, chat_id: string}>}
  */
-export async function queryDocument({ doc, question, persona }) {
+export async function queryDocument({ docs, question, persona }) {
   const formData = new FormData();
-  formData.append("docs", doc);
+  const fileArray = Array.isArray(docs) ? docs : [docs];
+  fileArray.forEach((doc) => {
+    formData.append("docs", doc);
+  });
   formData.append("question", question);
   formData.append("persona", persona);
 
   const response = await fetch(`${API_URL}/api/query`, {
     method: "POST",
+    credentials: "include",
     body: formData,
   });
 
@@ -122,56 +126,30 @@ export async function generateMarkdown(text) {
 }
 
 // ==========================================
-// NEW CHAT API ENDPOINTS
+// CHAT API ENDPOINTS
 // ==========================================
+// Workflow:
+// 1. First message with docs: use queryDocument() - creates chat and returns chat_id
+// 2. Subsequent messages: use sendChatMessage() with the stored chat_id
 
 /**
- * Create a new chat session
- * @returns {Promise<{chat_id: string}>}
- */
-export async function createChat() {
-  const response = await fetch(`${API_URL}/api/chat/create`, {
-    method: "POST",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`API error: ${response.status} - ${errorText}`);
-  }
-
-  return response.json();
-}
-
-/**
- * Send a message to a chat
+ * Send a message to an existing chat
  * @param {Object} params
  * @param {string} params.chatId - The chat ID
  * @param {string} params.question - The user's question
  * @param {string} [params.persona] - The chat persona
- * @param {File[]} [params.docs] - Optional document files to upload
  * @returns {Promise<{response: string, additional_info: string, recommendations: string[], chat_id: string}>}
  */
-export async function sendChatMessage({
-  chatId,
-  question,
-  persona,
-  docs = [],
-}) {
-  const formData = new FormData();
-  formData.append("chat_id", chatId);
-  formData.append("question", question);
-  if (persona) {
-    formData.append("persona", persona);
-  }
-  docs.forEach((doc) => {
-    formData.append("docs[]", doc);
-  });
-
+export async function sendChatMessage({ chatId, question, persona }) {
   const response = await fetch(`${API_URL}/api/chat/message`, {
     method: "POST",
     credentials: "include",
-    body: formData,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      question,
+      persona,
+    }),
   });
 
   if (!response.ok) {
