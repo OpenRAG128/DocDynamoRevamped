@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './util/firebase'
 import { clearUserChats } from './util/utils'
-import { getChatList } from './util/api'
+import { getChatList, getChatMessages } from './util/api'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import MainSection from './components/MainSection'
@@ -50,8 +50,27 @@ export default function App() {
         id: chat._id,
         title: chat.title || 'Untitled Chat',
         timestamp: chat.updated_at ? new Date(chat.updated_at * 1000).toISOString() : new Date().toISOString(),
+        firstMessage: null, // Will be populated if title is "New Chat"
       }))
       formattedChats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+
+      // For chats with "New Chat" title, fetch the first user message to use as display
+      const chatsNeedingMessages = formattedChats.filter(chat => chat.title === 'New Chat')
+      await Promise.all(chatsNeedingMessages.map(async (chat) => {
+        try {
+          const messagesResponse = await getChatMessages(chat.id, { page: 1, limit: 5 })
+          if (messagesResponse?.messages?.length > 0) {
+            // Find the first user message
+            const firstUserMsg = messagesResponse.messages.find(m => m.role === 'user')
+            if (firstUserMsg) {
+              chat.firstMessage = firstUserMsg.content
+            }
+          }
+        } catch (err) {
+          console.error(`Error fetching messages for chat ${chat.id}:`, err)
+        }
+      }))
+
       setPreloadedChats(formattedChats)
     } catch (error) {
       console.error('Error preloading chats:', error)

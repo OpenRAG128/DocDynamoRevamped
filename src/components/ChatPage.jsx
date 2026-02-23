@@ -15,7 +15,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.vers
 export default function ChatPage({ darkMode, setMain }) {
     const { chatId } = useParams();
     const navigate = useNavigate();
-    const [chatRole] = useState('');
+    const [chatRole, setChatRole] = useState('');
+    const messagesEndRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [chatFiles, setChatFiles] = useState([]);
@@ -37,6 +38,7 @@ export default function ChatPage({ darkMode, setMain }) {
     const fileInputRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingChat, setIsLoadingChat] = useState(true);
     const [chatNotFound, setChatNotFound] = useState(false);
 
     // Track container width for responsive PDF sizing
@@ -199,13 +201,18 @@ export default function ChatPage({ darkMode, setMain }) {
         const loadChatMessages = async () => {
             if (!chatId) return;
 
-            setIsLoading(true);
+            setIsLoadingChat(true);
             try {
                 const data = await getChatMessages(chatId);
 
                 if (!data || !data.messages) {
                     setChatNotFound(true);
                     return;
+                }
+
+                // Set chat persona/role if returned by API
+                if (data.persona) {
+                    setChatRole(data.persona);
                 }
 
                 // Convert backend messages to UI format
@@ -220,7 +227,7 @@ export default function ChatPage({ darkMode, setMain }) {
                 console.error('Error loading chat messages:', error);
                 setChatNotFound(true);
             } finally {
-                setIsLoading(false);
+                setIsLoadingChat(false);
             }
         };
 
@@ -280,6 +287,13 @@ export default function ChatPage({ darkMode, setMain }) {
             URL.revokeObjectURL(url);
         };
     }, [chatFiles, selectedFileIndex]);
+
+    // Auto-scroll to latest message
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, isLoading]);
 
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
@@ -550,18 +564,26 @@ export default function ChatPage({ darkMode, setMain }) {
                         <ChevronRight size={16} className="shrink-0 text-text/40" />
                     </button>
                     {/* Desktop: Just show role */}
-                    <div className="hidden md:block flex-1">
-                        <p className="text-xs text-text/60">Chatting as <span className="font-medium text-text">{chatRole}</span></p>
-                    </div>
+                    {chatRole && (
+                        <div className="hidden md:block flex-1">
+                            <p className="text-xs text-text/60">Chatting as <span className="font-medium text-text">{chatRole}</span></p>
+                        </div>
+                    )}
                     {/* Mobile: Role badge */}
-                    <div className={`md:hidden px-2 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
-                        {chatRole}
-                    </div>
+                    {chatRole && (
+                        <div className={`md:hidden px-2 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                            {chatRole}
+                        </div>
+                    )}
                 </div>
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 text-sm">
-                    {messages.map((m) => (
+                    {isLoadingChat ? (
+                        <div className="flex items-center justify-center h-full">
+                            <Loader2 size={24} className="animate-spin text-purple-500" />
+                        </div>
+                    ) : messages.map((m) => (
                         <div key={m.id} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
                             {/* Avatar */}
                             <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${m.role === 'user'
@@ -588,22 +610,20 @@ export default function ChatPage({ darkMode, setMain }) {
                                 )}
                             </div>
                             {/* Message content */}
-                            <div className={`flex-1 max-w-[85%] ${m.role === 'user' ? 'text-right' : ''}`}>
-                                <div
-                                    className={`inline-block rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === 'user'
-                                        ? 'bg-purple-600 text-white'
-                                        : darkMode
-                                            ? 'bg-gray-800/80 text-gray-100'
-                                            : 'bg-white text-gray-800 shadow-sm border border-gray-100'
-                                        }`}
-                                >
-                                    {m.text}
-                                </div>
+                            <div
+                                className={`max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === 'user'
+                                    ? 'ml-auto bg-purple-600 text-white'
+                                    : darkMode
+                                        ? 'bg-gray-800/80 text-gray-100'
+                                        : 'bg-white text-gray-800 shadow-sm border border-gray-100'
+                                    }`}
+                            >
+                                {m.text}
                             </div>
                         </div>
                     ))}
-                    {/* Loading indicator */}
-                    {isLoading && (
+                    {/* Loading indicator - only show when sending a message */}
+                    {!isLoadingChat && isLoading && (
                         <div className="flex gap-3">
                             <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${darkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
                                 <img src="/logo.svg" alt="DocDynamo" className="w-5 h-5" />
@@ -615,35 +635,39 @@ export default function ChatPage({ darkMode, setMain }) {
                             </div>
                         </div>
                     )}
+                    {/* Scroll anchor */}
+                    <div ref={messagesEndRef} />
                 </div>
 
-                {/* Suggested prompts - Card style like the screenshot */}
-                <div className={`px-4 pb-3 space-y-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    <div className="flex flex-col gap-2">
-                        {[
-                            { icon: "✨", label: "Summarize the key points", highlight: true },
-                            { icon: "📋", label: "What are the main rules or guidelines?" },
-                            { icon: "❓", label: "Explain any complex sections" }
-                        ].map((prompt) => (
-                            <button
-                                key={prompt.label}
-                                type="button"
-                                onClick={() => setInput(prompt.label)}
-                                className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border text-left text-sm transition-all cursor-pointer ${prompt.highlight
-                                    ? darkMode
-                                        ? 'border-purple-500/50 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20'
-                                        : 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100'
-                                    : darkMode
-                                        ? 'border-gray-700 bg-gray-800/50 text-gray-300 hover:bg-gray-800'
-                                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
-                                    }`}
-                            >
-                                <span className="text-base">{prompt.icon}</span>
-                                <span>{prompt.label}</span>
-                            </button>
-                        ))}
+                {/* Suggested prompts - only show when no messages and not loading */}
+                {!isLoadingChat && messages.length === 0 && (
+                    <div className={`px-4 pb-3 space-y-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                        <div className="flex flex-col gap-2">
+                            {[
+                                { icon: "✨", label: "Summarize the key points", highlight: true },
+                                { icon: "📋", label: "What are the main rules or guidelines?" },
+                                { icon: "❓", label: "Explain any complex sections" }
+                            ].map((prompt) => (
+                                <button
+                                    key={prompt.label}
+                                    type="button"
+                                    onClick={() => setInput(prompt.label)}
+                                    className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border text-left text-sm transition-all cursor-pointer ${prompt.highlight
+                                        ? darkMode
+                                            ? 'border-purple-500/50 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20'
+                                            : 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100'
+                                        : darkMode
+                                            ? 'border-gray-700 bg-gray-800/50 text-gray-300 hover:bg-gray-800'
+                                            : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    <span className="text-base">{prompt.icon}</span>
+                                    <span>{prompt.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Input */}
                 <div className={`px-4 pb-4 pt-2 ${darkMode ? 'bg-gray-950' : 'bg-gray-50'}`}>
