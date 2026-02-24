@@ -46,12 +46,30 @@ export default function App() {
         setPreloadedChats([])
         return
       }
-      const formattedChats = chatList.map(chat => ({
-        id: chat._id,
-        title: chat.title || 'Untitled Chat',
-        timestamp: chat.updated_at ? new Date(chat.updated_at * 1000).toISOString() : new Date().toISOString(),
-        firstMessage: null, // Will be populated if title is "New Chat"
-      }))
+      const formattedChats = chatList.map(chat => {
+        // Handle timestamp conversion - support both seconds, milliseconds, and ISO strings
+        let timestamp;
+        if (chat.updated_at) {
+          if (typeof chat.updated_at === 'number') {
+            // If timestamp is less than 10 billion, it's likely in seconds; otherwise milliseconds
+            timestamp = chat.updated_at < 10000000000
+              ? new Date(chat.updated_at * 1000).toISOString()
+              : new Date(chat.updated_at).toISOString();
+          } else {
+            // Handle ISO string or other date formats
+            timestamp = new Date(chat.updated_at).toISOString();
+          }
+        } else {
+          timestamp = new Date().toISOString();
+        }
+
+        return {
+          id: chat._id,
+          title: chat.title || 'Untitled Chat',
+          timestamp,
+          firstMessage: null, // Will be populated if title is "New Chat"
+        };
+      })
       formattedChats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
       // For chats with "New Chat" title, fetch the first user message to use as display

@@ -37,9 +37,8 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
 
   // Sync with initialChats when they change (preloaded from App)
   useEffect(() => {
-    if (initialChats.length > 0) {
-      setChats(initialChats);
-    }
+    // Always sync with initialChats, even if empty (handles logout/refresh scenarios)
+    setChats(initialChats);
   }, [initialChats]);
 
   useEffect(() => {
