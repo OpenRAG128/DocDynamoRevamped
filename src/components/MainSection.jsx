@@ -340,17 +340,27 @@ export default function MainSection({ darkMode, setMain }) {
 
                           try {
                             // Step 1: Send query with docs - creates chat and returns chat_id
-                            const { chat_id } = await queryDocument({
+                            const response = await queryDocument({
                               docs: selectedFiles,
                               question: chatMessage,
                               persona: selectedRole,
                             });
 
+                            // Handle different possible response structures
+                            const chatId = response.chat_id || response.chatId || response.id || response._id;
+
+                            if (!chatId) {
+                              console.error('API response missing chat ID:', response);
+                              setError('Failed to create chat: No chat ID returned from server.');
+                              setIsUploading(false);
+                              return;
+                            }
+
                             // Step 2: Save files to local IndexedDB for preview
-                            await saveFilesToIndexedDB(selectedFiles, chat_id);
+                            await saveFilesToIndexedDB(selectedFiles, chatId);
 
                             // Step 3: Navigate to chat page
-                            window.location.href = `/chat/${chat_id}`;
+                            window.location.href = `/chat/${chatId}`;
                           } catch (err) {
                             console.error('Error creating chat:', err);
                             setError('Failed to create chat. Please try again.');
