@@ -4,6 +4,7 @@ import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upl
 import { getFilesFromIndexedDB, saveFilesToIndexedDB } from '@/util/utils.js';
 import { sendChatMessage, getChatMessages } from '@/util/api.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
+import ChatMessage from '@/components/ChatMessage.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -316,10 +317,17 @@ export default function ChatPage({ darkMode, setMain }) {
                 persona: chatRole,
             });
 
+            // Handle different possible response field names from the backend
+            const responseText = response.response
+                || response.message
+                || response.content
+                || response.answer
+                || 'No response received.';
+
             const assistantMessage = {
                 id: `assistant-${Date.now()}`,
                 role: 'assistant',
-                text: response.response || 'No response received.',
+                text: responseText,
             };
             setMessages((prev) => [...prev, assistantMessage]);
         } catch (error) {
@@ -380,7 +388,7 @@ export default function ChatPage({ darkMode, setMain }) {
                 <button
                     type="button"
                     onClick={() => navigate('/')}
-                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer"
+                    className="px-4 py-2 rounded-lg bg-linear-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer"
                 >
                     Start new chat
                 </button>
@@ -502,7 +510,7 @@ export default function ChatPage({ darkMode, setMain }) {
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
                                             disabled={isUploading}
-                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-linear-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <Upload size={16} />
                                             {isUploading ? 'Uploading...' : 'Re-upload Files'}
@@ -584,43 +592,7 @@ export default function ChatPage({ darkMode, setMain }) {
                             <Loader2 size={24} className="animate-spin text-purple-500" />
                         </div>
                     ) : messages.map((m) => (
-                        <div key={m.id} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                            {/* Avatar */}
-                            <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${m.role === 'user'
-                                ? 'bg-purple-600 text-white'
-                                : darkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
-                                }`}>
-                                {m.role === 'user' ? (
-                                    <span className="text-xs font-semibold">You</span>
-                                ) : (
-                                    <>
-                                        <img
-                                            src="/logo.svg"
-                                            alt="DocDynamo"
-                                            className="w-5 h-5"
-                                            onError={(e) => {
-                                                e.target.style.display = 'none';
-                                                if (e.target.nextSibling) {
-                                                    e.target.nextSibling.style.display = 'block';
-                                                }
-                                            }}
-                                        />
-                                        <span className="text-xs font-semibold hidden">D</span>
-                                    </>
-                                )}
-                            </div>
-                            {/* Message content */}
-                            <div
-                                className={`max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === 'user'
-                                    ? 'ml-auto bg-purple-600 text-white'
-                                    : darkMode
-                                        ? 'bg-gray-800/80 text-gray-100'
-                                        : 'bg-white text-gray-800 shadow-sm border border-gray-100'
-                                    }`}
-                            >
-                                {m.text}
-                            </div>
-                        </div>
+                        <ChatMessage key={m.id} message={m} darkMode={darkMode} />
                     ))}
                     {/* Loading indicator - only show when sending a message */}
                     {!isLoadingChat && isLoading && (
@@ -687,7 +659,7 @@ export default function ChatPage({ darkMode, setMain }) {
                             type="button"
                             onClick={handleSend}
                             className={`p-2 rounded-lg transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${input.trim() && !isLoading
-                                ? 'bg-gradient-to-r from-[#3258d5] to-accent text-white hover:shadow-md'
+                                ? 'bg-linear-to-r from-[#3258d5] to-accent text-white hover:shadow-md'
                                 : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-400'
                                 }`}
                             disabled={!input.trim() || isLoading}
@@ -782,7 +754,7 @@ export default function ChatPage({ darkMode, setMain }) {
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
                                             disabled={isUploading}
-                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-linear-to-r from-[#3258d5] to-accent text-white text-sm font-medium hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <Upload size={16} />
                                             {isUploading ? 'Uploading...' : 'Re-upload Files'}
