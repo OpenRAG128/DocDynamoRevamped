@@ -36,9 +36,11 @@ export default function App() {
 
   // Preloaded chats for sidebar
   const [preloadedChats, setPreloadedChats] = useState([])
+  const [chatsLoading, setChatsLoading] = useState(false)
 
   // Helper to load and format chats
   const loadChats = async () => {
+    setChatsLoading(true)
     try {
       const response = await getChatList()
       const chatList = Array.isArray(response) ? response : (response?.chats || response?.data || [])
@@ -93,6 +95,8 @@ export default function App() {
     } catch (error) {
       console.error('Error preloading chats:', error)
       setPreloadedChats([])
+    } finally {
+      setChatsLoading(false)
     }
   }
 
@@ -169,6 +173,7 @@ export default function App() {
     setUser(null)
     setUserId(null)
     setLoggedIn(false)
+    setPreloadedChats([]) // Clear chats from state on logout
   }
 
   // Show login screen if not logged in and showLogin is true
@@ -222,6 +227,7 @@ export default function App() {
       hasAccount={hasAccount}
       loggedIn={loggedIn}
       initialChats={preloadedChats}
+      chatsLoading={chatsLoading}
     />
   );
 

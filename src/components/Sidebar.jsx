@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn, initialChats = [] }) {
+export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn, initialChats = [], chatsLoading = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [cycle, setCycle] = useState(0);
@@ -79,7 +79,22 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
           )}
 
           {/* Chat History */}
-          {chats.length !== 0 ? (
+          {chatsLoading ? (
+            <div className="mt-3 space-y-2 max-h-64 overflow-hidden px-1">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`flex items-center gap-3 w-full px-3 py-3 rounded-md animate-pulse ${darkMode ? "bg-gray-800/40" : "bg-gray-100/60"}`}
+                >
+                  <div className={`w-4 h-4 rounded shrink-0 ${darkMode ? "bg-gray-700" : "bg-gray-300"}`} />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className={`h-3 rounded w-3/4 ${darkMode ? "bg-gray-700" : "bg-gray-300"}`} />
+                    <div className={`h-2 rounded w-1/2 ${darkMode ? "bg-gray-700/60" : "bg-gray-300/60"}`} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : chats.length !== 0 ? (
             <div className={`mt-3 space-y-1 max-h-64 overflow-y-auto scrollbar-custom ${darkMode ? 'dark-scrollbar' : 'light-scrollbar'}`}>
               {chats.map((chat) => (
                 <button
