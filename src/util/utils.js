@@ -43,7 +43,7 @@ export const saveFilesToIndexedDB = async (files, chatId) => {
     files.forEach((file) => {
       store.add({
         id: `${chatId}_${file.name}_${Date.now()}`,
-        chatId: chatId,
+        chatId: String(chatId),
         name: file.name,
         type: file.type,
         size: file.size,
@@ -72,7 +72,9 @@ export const getFilesFromIndexedDB = async (chatId) => {
       const request = store.getAll();
       request.onsuccess = () => {
         const allFiles = request.result;
-        const chatFiles = allFiles.filter((f) => f.chatId === chatId);
+        const chatFiles = allFiles.filter(
+          (f) => String(f.chatId) === String(chatId),
+        );
         resolve(chatFiles);
       };
       request.onerror = () => reject(request.error);
