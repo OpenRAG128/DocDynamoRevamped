@@ -356,10 +356,18 @@ export default function MainSection({ darkMode, setMain }) {
                               return;
                             }
 
-                            // Step 2: Save files to local IndexedDB for preview
+                            // Step 2: Save recommendations to localStorage if present
+                            if (response.recommendations && response.recommendations.length > 0) {
+                              localStorage.setItem(
+                                `docDynamo_recommendations_${chatId}`,
+                                JSON.stringify(response.recommendations)
+                              );
+                            }
+
+                            // Step 3: Save files to local IndexedDB for preview
                             await saveFilesToIndexedDB(selectedFiles, chatId);
 
-                            // Step 3: Navigate to chat page
+                            // Step 4: Navigate to chat page
                             window.location.href = `/chat/${chatId}`;
                           } catch (err) {
                             console.error('Error creating chat:', err);

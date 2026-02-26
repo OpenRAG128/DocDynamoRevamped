@@ -8,8 +8,8 @@ export default function ChatMessage({ message, darkMode }) {
         <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
             {/* Avatar */}
             <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${isUser
-                    ? 'bg-purple-600 text-white'
-                    : darkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
+                ? 'bg-purple-600 text-white'
+                : darkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
                 }`}>
                 {isUser ? (
                     <span className="text-xs font-semibold">You</span>
@@ -33,10 +33,10 @@ export default function ChatMessage({ message, darkMode }) {
             {/* Message content */}
             <div
                 className={`max-w-[95%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${isUser
-                        ? 'ml-auto bg-purple-600 text-white'
-                        : darkMode
-                            ? 'bg-gray-800/80 text-gray-100'
-                            : 'bg-white text-gray-800 shadow-sm border border-gray-100'
+                    ? 'ml-auto bg-purple-600 text-white'
+                    : darkMode
+                        ? 'bg-gray-800/80 text-gray-100'
+                        : 'bg-white text-gray-800 shadow-sm border border-gray-100'
                     }`}
             >
                 <ReactMarkdown

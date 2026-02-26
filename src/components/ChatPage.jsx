@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload, Loader2 } from 'lucide-react';
+import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload, Loader2, PlayCircle } from 'lucide-react';
 import { getFilesFromIndexedDB, saveFilesToIndexedDB } from '@/util/utils.js';
 import { sendChatMessage, getChatMessages } from '@/util/api.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
@@ -41,6 +41,7 @@ export default function ChatPage({ darkMode, setMain }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingChat, setIsLoadingChat] = useState(true);
     const [chatNotFound, setChatNotFound] = useState(false);
+    const [recommendations, setRecommendations] = useState([]);
 
     // Track container width for responsive PDF sizing
     useEffect(() => {
@@ -195,6 +196,19 @@ export default function ChatPage({ darkMode, setMain }) {
 
         return () => clearTimeout(timeout);
     }, [searchQuery, totalPages, zoom]);
+
+    // Load recommendations from localStorage
+    useEffect(() => {
+        if (!chatId) return;
+        try {
+            const stored = localStorage.getItem(`docDynamo_recommendations_${chatId}`);
+            if (stored) {
+                setRecommendations(JSON.parse(stored));
+            }
+        } catch (e) {
+            console.error('Error loading recommendations:', e);
+        }
+    }, [chatId]);
 
     // Load messages from backend API
     useEffect(() => {
@@ -591,9 +605,56 @@ export default function ChatPage({ darkMode, setMain }) {
                         <div className="flex items-center justify-center h-full">
                             <Loader2 size={24} className="animate-spin text-purple-500" />
                         </div>
-                    ) : messages.map((m) => (
-                        <ChatMessage key={m.id} message={m} darkMode={darkMode} />
-                    ))}
+                    ) : messages.map((m, index) => {
+                        // Show recommendations right after the first assistant message
+                        const isFirstAssistant = m.role === 'assistant' && messages.findIndex(msg => msg.role === 'assistant') === index;
+                        return (
+                            <div key={m.id}>
+                                <ChatMessage message={m} darkMode={darkMode} />
+                                {isFirstAssistant && recommendations.length > 0 && (
+                                    <div className={`flex gap-3 mt-4`}>
+                                        <div className="shrink-0 w-8" />
+                                        <div className={`flex-1 rounded-xl p-3 ${darkMode ? 'bg-gray-900/60 border border-gray-800/80' : 'bg-gray-50 border border-gray-200/80'}`}>
+                                            <div className="flex items-center gap-2 mb-2.5">
+                                                <div className={`p-1 rounded-md ${darkMode ? 'bg-red-500/15' : 'bg-red-50'}`}>
+                                                    <PlayCircle size={13} className="text-red-500" />
+                                                </div>
+                                                <h3 className={`text-xs font-semibold tracking-wide uppercase ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Related Videos</h3>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {recommendations.slice(0, 6).map((rec) => (
+                                                    <a
+                                                        key={rec.video_id}
+                                                        href={`https://www.youtube.com/watch?v=${rec.video_id}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={`group relative rounded-lg overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ring-1 ${darkMode
+                                                            ? 'ring-gray-700/60 hover:ring-red-500/40'
+                                                            : 'ring-gray-200 hover:ring-red-400/40'
+                                                            }`}
+                                                    >
+                                                        <div className="relative aspect-video">
+                                                            <img
+                                                                src={rec.thumbnail_url}
+                                                                alt="Video thumbnail"
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                                <div className="w-8 h-8 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg backdrop-blur-sm">
+                                                                    <PlayCircle size={18} className="text-white" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                     {/* Loading indicator - only show when sending a message */}
                     {!isLoadingChat && isLoading && (
                         <div className="flex gap-3">
@@ -607,6 +668,7 @@ export default function ChatPage({ darkMode, setMain }) {
                             </div>
                         </div>
                     )}
+
                     {/* Scroll anchor */}
                     <div ref={messagesEndRef} />
                 </div>
