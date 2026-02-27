@@ -236,9 +236,9 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
                     <h1 className="text-3xl sm:text-5xl md:text-[58px] font-display font-bold text-purple-600 flex justify-center items-center gap-2">
                         DocDynamo
                     </h1>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2 mt-5">AI-Powered Document Intelligence</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2 mt-5">Turn documents into answers. Instantly.</h2>
                     <p className="text-gray-600 text-center max-w-md">
-                        Transform your documents into intelligent insights with DocDynamo's advanced AI capabilities
+                        Context-aware AI built for serious students and modern researchers.
                     </p>
                 </div>
                 {/* Background circles */}

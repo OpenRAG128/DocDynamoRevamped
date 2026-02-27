@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon, X, CheckCircle2 } from 'lucide-react';
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
 import { saveFilesToIndexedDB } from '../util/utils.js';
@@ -17,6 +17,30 @@ import {
 } from "react-icons/fa";
 import Footer from './Footer.jsx';
 
+const placeholderSuggestions = [
+  'Summarize this document in bullet points',
+  'What are the key takeaways?',
+  'Explain the main argument',
+  'List all important dates and figures',
+  'Compare and contrast the themes',
+];
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function getFileIcon(fileName) {
+  const ext = fileName.split('.').pop().toLowerCase();
+  switch (ext) {
+    case 'pdf': return <FileText size={14} className="text-red-500" />;
+    case 'doc': case 'docx': return <File size={14} className="text-blue-600" />;
+    case 'txt': return <FileType2 size={14} className="text-gray-500" />;
+    default: return <FileType size={14} className="text-gray-400" />;
+  }
+}
+
 export default function MainSection({ darkMode, setMain }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -25,11 +49,20 @@ export default function MainSection({ darkMode, setMain }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const fileInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     setMain(false);
+  }, []);
+
+  // Rotate placeholder suggestions
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % placeholderSuggestions.length);
+    }, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   const roles = [
@@ -44,7 +77,7 @@ export default function MainSection({ darkMode, setMain }) {
     { label: "Investor", icon: <FaCoins /> },
   ];
 
-  const handleFiles = (files) => {
+  const handleFiles = useCallback((files) => {
     if (!files || files.length === 0) return;
 
     const incomingFiles = Array.from(files);
@@ -69,11 +102,7 @@ export default function MainSection({ darkMode, setMain }) {
 
     setError('');
     setSelectedFiles(incomingFiles);
-
-    // Placeholder: wire this into your processing/upload pipeline
-    // e.g. send to backend or client-side parser
-    console.log('Selected files:', incomingFiles);
-  };
+  }, []);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -102,7 +131,7 @@ export default function MainSection({ darkMode, setMain }) {
   };
 
   // Close dropdown when clicking outside
-  useState(() => {
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -112,12 +141,76 @@ export default function MainSection({ darkMode, setMain }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Send handler extracted for readability + keyboard shortcut
+  const handleSend = useCallback(async () => {
+    if (isUploading) return;
+
+    if (selectedFiles.length === 0) {
+      setError('Please upload at least one file before starting a chat.');
+      return;
+    }
+    if (!chatMessage.trim()) {
+      setError('Please enter a message before starting a chat.');
+      return;
+    }
+
+    setError('');
+    setIsUploading(true);
+
+    try {
+      const response = await queryDocument({
+        docs: selectedFiles,
+        question: chatMessage,
+        persona: selectedRole,
+      });
+
+      const chatId = response.chat_id || response.chatId || response.id || response._id;
+
+      if (!chatId) {
+        console.error('API response missing chat ID:', response);
+        setError('Failed to create chat: No chat ID returned from server.');
+        setIsUploading(false);
+        return;
+      }
+
+      if (response.recommendations?.length > 0) {
+        localStorage.setItem(
+          `docDynamo_recommendations_${chatId}`,
+          JSON.stringify(response.recommendations)
+        );
+      }
+
+      await saveFilesToIndexedDB(selectedFiles, chatId);
+      window.location.href = `/chat/${chatId}`;
+    } catch (err) {
+      console.error('Error creating chat:', err);
+      setError('Failed to create chat. Please try again.');
+      setIsUploading(false);
+    }
+  }, [isUploading, selectedFiles, chatMessage, selectedRole]);
+
+  // Keyboard shortcut: Ctrl+Enter to send
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSend();
+    }
+  }, [handleSend]);
+
+  // Auto-clear errors when the user takes corrective action
+  useEffect(() => {
+    if (error && (selectedFiles.length > 0 || chatMessage.trim())) {
+      const timeout = setTimeout(() => setError(''), 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [selectedFiles, chatMessage, error]);
+
   return (
     <div className='flex flex-col w-full min-h-full'>
       <div className='flex justify-center items-center flex-1 w-full bg-background px-3 sm:px-6 lg:px-8 py-4'>
         <div className='flex flex-col justify-center items-center gap-4 sm:gap-6 max-w-7xl w-full'>
           {/* Hero Section Header*/}
-          <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 font-family-sans mt-2'>
+          <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 font-family-sans mt-2 animate-fadeIn'>
             <img
               src="/hero.png"
               alt="Contextual Intelligence"
@@ -125,16 +218,16 @@ export default function MainSection({ darkMode, setMain }) {
             />
             <div className='flex flex-col justify-center items-center sm:items-start sm:gap-2'>
               <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-[#3258d5] to-accent font-extrabold text-center sm:text-left leading-tight'>
-                Contextual Intelligence
+                Think Deeper
               </span>
               <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-text font-extrabold font-display text-center sm:text-left leading-tight'>
-                built on trust.
+                Research Faster
               </span>
             </div>
           </div>
           {/* Main interaction container */}
           <div
-            className={`p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center rounded-xl sm:rounded-2xl backdrop-blur-xl transition-all duration-300 w-full max-w-4xl relative ${darkMode ? "bg-white/5 border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" : "bg-white/30 border border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]"}`}
+            className={`p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center rounded-xl sm:rounded-2xl backdrop-blur-xl transition-all duration-300 w-full max-w-4xl relative animate-fadeIn animation-delay-200 ${darkMode ? "bg-white/5 border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" : "bg-white/30 border border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]"}`}
             style={{
               boxShadow: darkMode
                 ? '0 0 30px rgba(103, 80, 246, 0.4), 0 0 60px rgba(103, 80, 246, 0.3), 0 0 90px rgba(103, 80, 246, 0.2), 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1)'
@@ -191,6 +284,7 @@ export default function MainSection({ darkMode, setMain }) {
                       <p className='text-text/60 text-xs sm:text-sm text-center'>or</p>
                       <button
                         type="button"
+                        aria-label="Browse files to upload"
                         onClick={() => fileInputRef.current && fileInputRef.current.click()}
                         className='px-5 sm:px-6 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer'
                       >
@@ -200,28 +294,33 @@ export default function MainSection({ darkMode, setMain }) {
                     <p className='text-text/40 text-xs text-center mt-1 sm:mt-2'>Supports up to 5 PDF, DOCX, or TXT files
                     </p>
                   </div>
-                  : <div className='relative z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-6'>
-                    <div className='flex flex-col items-center'>
-                      <p className='font-bold'>
-                        {
-                          selectedFiles.length === 1 ? "Selected Document" : "Selected Documents :"
-                        }
+                  : <div className='relative z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-6 w-full'>
+                    <div className='flex items-center gap-2 mb-1'>
+                      <CheckCircle2 size={18} className='text-green-500' />
+                      <p className='font-bold text-text'>
+                        {selectedFiles.length === 1 ? '1 Document Selected' : `${selectedFiles.length} Documents Selected`}
                       </p>
-                      {selectedFiles &&
-                        selectedFiles.map((file) => {
-                          return <p key={file.name} className="text-text/60 text-sm text-center mt-1 sm:mt-2 px-2 truncate w-full max-w-xs" title={file.name}>
-                            {file.name}
-                          </p>
-                        })}
+                    </div>
+                    <div className='flex flex-col gap-1.5 w-full max-w-xs'>
+                      {selectedFiles.map((file) => (
+                        <div
+                          key={file.name}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${darkMode ? 'bg-gray-700/60' : 'bg-gray-100'
+                            }`}
+                        >
+                          {getFileIcon(file.name)}
+                          <span className='truncate flex-1 text-text/80' title={file.name}>{file.name}</span>
+                          <span className='text-text/40 text-xs shrink-0'>{formatFileSize(file.size)}</span>
+                        </div>
+                      ))}
                     </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        setSelectedFiles([]);
-                      }}
-                      className='px-5 sm:px-6 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer'
+                      aria-label="Remove all selected files"
+                      onClick={() => setSelectedFiles([])}
+                      className='mt-1 px-5 sm:px-6 py-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer flex items-center gap-2'
                     >
-                      Reset
+                      <X size={14} /> Reset
                     </button>
                   </div>
                 }
@@ -260,9 +359,13 @@ export default function MainSection({ darkMode, setMain }) {
                       }`}
                   >
                     <textarea
-                      placeholder="Ask something like “Summarize this document” or “Explain key points”"
-                      className="flex-1 min-h-16 resize-none bg-transparent outline-none text-sm text-text placeholder:text-text/40" value={chatMessage}
-                      onChange={(e) => setChatMessage(e.target.value)} />
+                      placeholder={placeholderSuggestions[placeholderIndex]}
+                      aria-label="Type your question about the document"
+                      className="flex-1 min-h-16 resize-none bg-transparent outline-none text-sm text-text placeholder:text-text/40 placeholder:transition-opacity"
+                      value={chatMessage}
+                      onChange={(e) => setChatMessage(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                    />
 
                     {/* Custom Role Dropdown */}
                     <div className="flex items-center gap-2 mt-2">
@@ -322,60 +425,10 @@ export default function MainSection({ darkMode, setMain }) {
                       {/* Send Button */}
                       <button
                         disabled={isUploading}
-                        onClick={async () => {
-                          // Validation checks
-                          if (selectedFiles.length === 0) {
-                            setError('Please upload at least one file before starting a chat.');
-                            return;
-                          }
-
-                          if (!chatMessage.trim()) {
-                            setError('Please enter a message before starting a chat.');
-                            return;
-                          }
-
-                          // Clear any previous errors
-                          setError('');
-                          setIsUploading(true);
-
-                          try {
-                            // Step 1: Send query with docs - creates chat and returns chat_id
-                            const response = await queryDocument({
-                              docs: selectedFiles,
-                              question: chatMessage,
-                              persona: selectedRole,
-                            });
-
-                            // Handle different possible response structures
-                            const chatId = response.chat_id || response.chatId || response.id || response._id;
-
-                            if (!chatId) {
-                              console.error('API response missing chat ID:', response);
-                              setError('Failed to create chat: No chat ID returned from server.');
-                              setIsUploading(false);
-                              return;
-                            }
-
-                            // Step 2: Save recommendations to localStorage if present
-                            if (response.recommendations && response.recommendations.length > 0) {
-                              localStorage.setItem(
-                                `docDynamo_recommendations_${chatId}`,
-                                JSON.stringify(response.recommendations)
-                              );
-                            }
-
-                            // Step 3: Save files to local IndexedDB for preview
-                            await saveFilesToIndexedDB(selectedFiles, chatId);
-
-                            // Step 4: Navigate to chat page
-                            window.location.href = `/chat/${chatId}`;
-                          } catch (err) {
-                            console.error('Error creating chat:', err);
-                            setError('Failed to create chat. Please try again.');
-                            setIsUploading(false);
-                          }
-                        }}
-                        className={`p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer shrink-0 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
+                        aria-label="Send message and start chat"
+                        title="Send (Ctrl+Enter)"
+                        onClick={handleSend}
+                        className={`p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer shrink-0 transition-all duration-200 ${isUploading ? 'opacity-50 cursor-wait' : 'hover:scale-110 active:scale-95'}`}
                       >
                         {isUploading ? (
                           <div className="w-[18px] h-[18px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -396,14 +449,16 @@ export default function MainSection({ darkMode, setMain }) {
               </div>
             </div>
           </div>
-          <Card
-            quote="It's like ChatGPT, but for"
-            highlightText=" research papers."
-            authorName="Rick Grimes, PhD"
-            authorHandle="@SolictingSherrif"
-            authorImage="/avatar.jpg"
-            darkMode={darkMode}
-          />
+          <div className='animate-fadeIn animation-delay-400 w-full flex flex-col items-center'>
+            <Card
+              quote="It's like ChatGPT, but for"
+              highlightText=" research papers."
+              authorName="Rick Grimes, PhD"
+              authorHandle="@SolictingSherrif"
+              authorImage="/avatar.jpg"
+              darkMode={darkMode}
+            />
+          </div>
           <FeaturesSection darkMode={darkMode} />
           <Footer />
         </div>
