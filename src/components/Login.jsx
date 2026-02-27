@@ -248,7 +248,7 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
             </div>
 
             {/* Right side - Login form - Full width on mobile */}
-            <div className="flex-1 w-full flex items-center justify-center relative overflow-y-auto bg-gradient-to-br from-purple-600 to-indigo-700 py-8 px-4">
+            <div className="flex-1 w-full flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-purple-600 to-indigo-700 py-8 px-4">
                 {/* Background decorative elements */}
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full transform translate-x-32 translate-y-32"></div>
                 <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full transform -translate-x-20 -translate-y-20"></div>
