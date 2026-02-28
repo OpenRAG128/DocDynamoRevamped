@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload, Loader2, PlayCircle } from 'lucide-react';
+import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload, Loader2, PlayCircle, Info } from 'lucide-react';
 import { getFilesFromIndexedDB, saveFilesToIndexedDB } from '@/util/utils.js';
 import { sendChatMessage, getChatMessages } from '@/util/api.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
@@ -42,6 +42,8 @@ export default function ChatPage({ darkMode, setMain }) {
     const [isLoadingChat, setIsLoadingChat] = useState(true);
     const [chatNotFound, setChatNotFound] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
+    const [additionalInfo, setAdditionalInfo] = useState(null);
+    const [activeInfoTab, setActiveInfoTab] = useState(null);
 
     // Track container width for responsive PDF sizing
     useEffect(() => {
@@ -197,7 +199,7 @@ export default function ChatPage({ darkMode, setMain }) {
         return () => clearTimeout(timeout);
     }, [searchQuery, totalPages, zoom]);
 
-    // Load recommendations from localStorage
+    // Load recommendations and additional info from localStorage
     useEffect(() => {
         if (!chatId) return;
         try {
@@ -207,6 +209,14 @@ export default function ChatPage({ darkMode, setMain }) {
             }
         } catch (e) {
             console.error('Error loading recommendations:', e);
+        }
+        try {
+            const storedInfo = localStorage.getItem(`docDynamo_additional_info_${chatId}`);
+            if (storedInfo) {
+                setAdditionalInfo(JSON.parse(storedInfo));
+            }
+        } catch (e) {
+            console.error('Error loading additional info:', e);
         }
     }, [chatId]);
 
@@ -611,44 +621,106 @@ export default function ChatPage({ darkMode, setMain }) {
                         return (
                             <div key={m.id}>
                                 <ChatMessage message={m} darkMode={darkMode} />
-                                {isFirstAssistant && recommendations.length > 0 && (
+                                {isFirstAssistant && (recommendations.length > 0 || additionalInfo) && (
                                     <div className={`flex gap-3 mt-4`}>
                                         <div className="shrink-0 w-8" />
-                                        <div className={`flex-1 rounded-xl p-3 ${darkMode ? 'bg-gray-900/60 border border-gray-800/80' : 'bg-gray-50 border border-gray-200/80'}`}>
-                                            <div className="flex items-center gap-2 mb-2.5">
-                                                <div className={`p-1 rounded-md ${darkMode ? 'bg-red-500/15' : 'bg-red-50'}`}>
-                                                    <PlayCircle size={13} className="text-red-500" />
-                                                </div>
-                                                <h3 className={`text-xs font-semibold tracking-wide uppercase ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Related Videos</h3>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {recommendations.slice(0, 6).map((rec) => (
-                                                    <a
-                                                        key={rec.video_id}
-                                                        href={`https://www.youtube.com/watch?v=${rec.video_id}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className={`group relative rounded-lg overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ring-1 ${darkMode
-                                                            ? 'ring-gray-700/60 hover:ring-red-500/40'
-                                                            : 'ring-gray-200 hover:ring-red-400/40'
-                                                            }`}
+                                        <div className="flex-1 flex flex-col gap-2">
+                                            {/* Toggle buttons - visually polished */}
+                                            <div className={`flex gap-2 rounded-xl p-3 border ${darkMode ? 'bg-gray-900/70 border-gray-800/80' : 'bg-white border-gray-200/80'} shadow-sm`}>
+                                                {recommendations.length > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveInfoTab(activeInfoTab === 'videos' ? null : 'videos')}
+                                                        className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold focus:outline-none transition-all duration-150 cursor-pointer border-2
+                                                            ${activeInfoTab === 'videos'
+                                                                ? darkMode
+                                                                    ? 'bg-red-500/20 text-red-500 border-red-500 shadow-md'
+                                                                    : 'bg-red-50 text-red-600 border-red-400 shadow-md'
+                                                                : darkMode
+                                                                    ? 'bg-gray-900 text-gray-300 border-gray-700 hover:bg-gray-800 hover:border-red-500'
+                                                                    : 'bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:border-red-400'}
+                                                        `}
+                                                        style={{ boxShadow: activeInfoTab === 'videos' ? (darkMode ? '0 2px 8px rgba(255,0,0,0.08)' : '0 2px 8px rgba(255,0,0,0.10)') : undefined }}
                                                     >
-                                                        <div className="relative aspect-video">
-                                                            <img
-                                                                src={rec.thumbnail_url}
-                                                                alt="Video thumbnail"
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                                <div className="w-8 h-8 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg backdrop-blur-sm">
-                                                                    <PlayCircle size={18} className="text-white" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </a>
-                                                ))}
+                                                        <PlayCircle size={17} className={activeInfoTab === 'videos' ? (darkMode ? 'text-red-400' : 'text-red-500') : 'text-gray-400'} />
+                                                        <span>Related Videos</span>
+                                                    </button>
+                                                )}
+                                                {additionalInfo && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveInfoTab(activeInfoTab === 'info' ? null : 'info')}
+                                                        className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold focus:outline-none transition-all duration-150 cursor-pointer border-2
+                                                            ${activeInfoTab === 'info'
+                                                                ? darkMode
+                                                                    ? 'bg-blue-500/20 text-blue-400 border-blue-500 shadow-md'
+                                                                    : 'bg-blue-50 text-blue-600 border-blue-400 shadow-md'
+                                                                : darkMode
+                                                                    ? 'bg-gray-900 text-gray-300 border-gray-700 hover:bg-gray-800 hover:border-blue-500'
+                                                                    : 'bg-white text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-400'}
+                                                        `}
+                                                        style={{ boxShadow: activeInfoTab === 'info' ? (darkMode ? '0 2px 8px rgba(0,80,255,0.08)' : '0 2px 8px rgba(0,80,255,0.10)') : undefined }}
+                                                    >
+                                                        <Info size={17} className={activeInfoTab === 'info' ? (darkMode ? 'text-blue-400' : 'text-blue-500') : 'text-gray-400'} />
+                                                        <span>Additional Info</span>
+                                                    </button>
+                                                )}
                                             </div>
+
+                                            {/* Related Videos panel */}
+                                            {activeInfoTab === 'videos' && recommendations.length > 0 && (
+                                                <div className={`rounded-xl p-3 ${darkMode ? 'bg-gray-900/60 border border-gray-800/80' : 'bg-gray-50 border border-gray-200/80'}`}>
+                                                    <div className="flex items-center gap-2 mb-2.5">
+                                                        <div className={`p-1 rounded-md ${darkMode ? 'bg-red-500/15' : 'bg-red-50'}`}>
+                                                            <PlayCircle size={13} className="text-red-500" />
+                                                        </div>
+                                                        <h3 className={`text-xs font-semibold tracking-wide uppercase ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Related Videos</h3>
+                                                    </div>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        {recommendations.slice(0, 6).map((rec) => (
+                                                            <a
+                                                                key={rec.video_id}
+                                                                href={`https://www.youtube.com/watch?v=${rec.video_id}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className={`group relative rounded-lg overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ring-1 ${darkMode
+                                                                    ? 'ring-gray-700/60 hover:ring-red-500/40'
+                                                                    : 'ring-gray-200 hover:ring-red-400/40'
+                                                                    }`}
+                                                            >
+                                                                <div className="relative aspect-video">
+                                                                    <img
+                                                                        src={rec.thumbnail_url}
+                                                                        alt="Video thumbnail"
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                                        <div className="w-8 h-8 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg backdrop-blur-sm">
+                                                                            <PlayCircle size={18} className="text-white" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Additional Info panel */}
+                                            {activeInfoTab === 'info' && additionalInfo && (
+                                                <div className={`rounded-xl p-3 ${darkMode ? 'bg-gray-900/60 border border-gray-800/80' : 'bg-gray-50 border border-gray-200/80'}`}>
+                                                    <div className="flex items-center gap-2 mb-2.5">
+                                                        <div className={`p-1 rounded-md ${darkMode ? 'bg-blue-500/15' : 'bg-blue-50'}`}>
+                                                            <Info size={13} className="text-blue-500" />
+                                                        </div>
+                                                        <h3 className={`text-xs font-semibold tracking-wide uppercase ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Additional Info</h3>
+                                                    </div>
+                                                    <div className={`text-sm leading-relaxed whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                        {typeof additionalInfo === 'string' ? additionalInfo : JSON.stringify(additionalInfo, null, 2)}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
