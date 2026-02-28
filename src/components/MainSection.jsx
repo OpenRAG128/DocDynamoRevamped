@@ -180,6 +180,13 @@ export default function MainSection({ darkMode, setMain }) {
         );
       }
 
+      if (response.additional_info) {
+        localStorage.setItem(
+          `docDynamo_additional_info_${chatId}`,
+          JSON.stringify(response.additional_info)
+        );
+      }
+
       await saveFilesToIndexedDB(selectedFiles, chatId);
       window.location.href = `/chat/${chatId}`;
     } catch (err) {
