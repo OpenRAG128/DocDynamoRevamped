@@ -2,11 +2,12 @@ import {
     GraduationCap,
     FlaskConical,
     Briefcase,
-    Quote,
+    FileSearch,
     FolderOpen,
     UserCog,
     FileText,
-    Sparkles
+    Sparkles,
+    TrendingUp
 } from 'lucide-react';
 
 const FeatureCard = ({ icon: Icon, title, description, children, darkMode }) => {
@@ -73,41 +74,41 @@ const ResearcherMockup = ({ darkMode }) => (
     </div>
 );
 
-const StudentMockup = ({ darkMode }) => (
+const FintechMockup = ({ darkMode }) => (
     <div className={`w-full rounded-xl overflow-hidden border ${darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
         <div className={`px-3 py-2 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}>
             <div className="flex items-center gap-2">
                 <FileText size={12} className="text-accent" />
-                <span className="text-xs text-text/70">lecture_notes.pdf</span>
+                <span className="text-xs text-text/70">10k_filing_2024.pdf</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">Study Mode</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">Risk Analysis</span>
         </div>
         <div className="p-3 space-y-2">
             <div className={`px-3 py-2 rounded-lg text-xs ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
-                <span className="text-text/70">Summarize Chapter 3 in bullet points</span>
+                <span className="text-text/70">Summarize key liquidity risks</span>
             </div>
             <div className={`px-3 py-2 rounded-xl bg-gradient-to-r from-[#3258d5]/10 to-accent/10 border ${darkMode ? 'border-accent/30' : 'border-accent/20'}`}>
                 <ul className="text-xs text-text/80 space-y-1.5">
                     <li className="flex items-start gap-2">
                         <span className="text-accent mt-0.5">•</span>
-                        <span>Key concept: Neural plasticity</span>
+                        <span>Short-term debt maturity</span>
                     </li>
                     <li className="flex items-start gap-2">
                         <span className="text-accent mt-0.5">•</span>
-                        <span>Learning occurs through...</span>
+                        <span>Interest rate volatility</span>
                     </li>
                     <li className="flex items-start gap-2">
                         <span className="text-accent mt-0.5">•</span>
-                        <span>Memory consolidation requires...</span>
+                        <span>Regulatory capital restrictions</span>
                     </li>
                 </ul>
             </div>
             <div className="flex gap-2">
                 <button className="flex-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-[10px] font-medium">
-                    Quiz Me
+                    Generate Report
                 </button>
                 <button className={`flex-1 px-3 py-1.5 rounded-lg text-[10px] font-medium ${darkMode ? 'bg-gray-700 text-text/70' : 'bg-white border border-gray-200 text-text/70'}`}>
-                    Flashcards
+                    Compare Q3
                 </button>
             </div>
         </div>
@@ -144,16 +145,16 @@ const ProfessionalMockup = ({ darkMode }) => (
     </div>
 );
 
-const CitationMockup = ({ darkMode }) => (
+const AuditMockup = ({ darkMode }) => (
     <div className="w-full space-y-2">
         <div className={`px-3 py-2 rounded-lg text-xs text-right ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
-            <span className="text-text/70">Who is the author of this paper?</span>
+            <span className="text-text/70">Where is the revenue recognition policy?</span>
         </div>
         <div className={`px-3 py-2 rounded-xl bg-gradient-to-r from-[#3258d5]/10 to-accent/10 border ${darkMode ? 'border-accent/30' : 'border-accent/20'}`}>
             <p className="text-xs text-text/80 leading-relaxed">
-                The author is <span className="font-medium text-accent">Dr. Jane Smith</span> from MIT, as stated on
+                The requested policy is detailed in <span className="font-medium text-accent">Section 4.2</span>, as stated on
                 <span className="inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded bg-accent/20 text-accent text-[10px] font-medium">
-                    Page 1
+                    Page 14
                 </span>
             </p>
         </div>
@@ -244,10 +245,10 @@ export default function FeaturesSection({ darkMode }) {
             mockup: ResearcherMockup
         },
         {
-            icon: GraduationCap,
-            title: "Ace Your Studies",
-            description: "Transform lecture notes into study guides. Quiz yourself, clarify confusing concepts, and prep for exams with confidence.",
-            mockup: StudentMockup
+            icon: TrendingUp,
+            title: "Financial Analysis",
+            description: "Analyze SEC filings, earning reports, and market research. Instantly extract risk factors, financial metrics, and regulatory updates.",
+            mockup: FintechMockup
         },
         {
             icon: Briefcase,
@@ -256,10 +257,10 @@ export default function FeaturesSection({ darkMode }) {
             mockup: ProfessionalMockup
         },
         {
-            icon: Quote,
-            title: "Traceable Answers",
-            description: "Every response links back to the exact source. Verify facts instantly without scrolling through pages.",
-            mockup: CitationMockup
+            icon: FileSearch,
+            title: "Audit-Ready Citations",
+            description: "Every metric and claim links directly to the source document. Streamline due diligence and simplify compliance audits.",
+            mockup: AuditMockup
         },
         {
             icon: FolderOpen,
