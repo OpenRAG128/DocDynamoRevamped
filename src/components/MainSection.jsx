@@ -211,9 +211,9 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
     }
   }, [isUploading, selectedFiles, chatMessage, selectedRole, hasAccount, onRequireLogin]);
 
-  // Keyboard shortcut: Ctrl+Enter to send
+  // Keyboard shortcut: Enter to send (without Shift so Shift+Enter adds newline)
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -448,7 +448,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                       <button
                         disabled={isUploading}
                         aria-label="Send message and start chat"
-                        title="Send (Ctrl+Enter)"
+                        title="Send (Enter)"
                         onClick={handleSend}
                         className={`p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer shrink-0 transition-all duration-200 ${isUploading ? 'opacity-50 cursor-wait' : 'hover:scale-110 active:scale-95'}`}
                       >
