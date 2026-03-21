@@ -2,8 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon, X, CheckCircle2 } from 'lucide-react';
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
-import { saveFilesToIndexedDB } from '../util/utils.js';
-import { queryDocument, getChatList } from '../util/api.js';
+import { saveFilesToIndexedDB, getUserChats } from '../util/utils.js';
+import { queryDocument } from '../util/api.js';
 import {
   FaGraduationCap,
   FaFlask,
@@ -159,9 +159,8 @@ export default function MainSection({ darkMode, setMain, hasAccount, onRequireLo
 
     if (!hasAccount) {
       try {
-        const response = await getChatList();
-        const chats = Array.isArray(response) ? response : (response?.chats || response?.data || []);
-        if (chats.length >= 1) {
+        const localChats = getUserChats(null);
+        if (localChats.length >= 1) {
           setError('You have reached the limit of 1 free chat. Please log in or sign up to create more.');
           setIsUploading(false);
           if (onRequireLogin) onRequireLogin('You have reached the limit of 1 free chat. Please log in or sign up to create more.');
