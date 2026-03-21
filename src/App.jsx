@@ -251,6 +251,9 @@ export default function App() {
                     darkMode={darkMode}
                     setMain={setMain}
                     hasAccount={hasAccount}
+                    loggedIn={loggedIn}
+                    userId={userId}
+                    preloadedChats={preloadedChats}
                     onRequireLogin={(msg) => setShowLogin({ show: true, message: msg || '' })}
                   />
                 </main>

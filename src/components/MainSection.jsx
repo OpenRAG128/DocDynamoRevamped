@@ -41,7 +41,7 @@ function getFileIcon(fileName) {
   }
 }
 
-export default function MainSection({ darkMode, setMain, hasAccount, onRequireLogin }) {
+export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, userId, preloadedChats, onRequireLogin }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [error, setError] = useState('');
@@ -157,10 +157,11 @@ export default function MainSection({ darkMode, setMain, hasAccount, onRequireLo
     setError('');
     setIsUploading(true);
 
-    if (!hasAccount) {
+    if (!loggedIn) {
       try {
         const localChats = getUserChats(null);
-        if (localChats.length >= 1) {
+        // Note: preloadedChats length tracking fallback logic ensures consistency if they somehow have chats cached in api array
+        if (localChats.length >= 1 || (preloadedChats && preloadedChats.length >= 1)) {
           setError('You have reached the limit of 1 free chat. Please log in or sign up to create more.');
           setIsUploading(false);
           if (onRequireLogin) onRequireLogin('You have reached the limit of 1 free chat. Please log in or sign up to create more.');
