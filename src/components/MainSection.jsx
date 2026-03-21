@@ -3,7 +3,7 @@ import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizon
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
 import { saveFilesToIndexedDB } from '../util/utils.js';
-import { queryDocument } from '../util/api.js';
+import { queryDocument, getChatList } from '../util/api.js';
 import {
   FaGraduationCap,
   FaFlask,
@@ -41,7 +41,7 @@ function getFileIcon(fileName) {
   }
 }
 
-export default function MainSection({ darkMode, setMain }) {
+export default function MainSection({ darkMode, setMain, hasAccount, onRequireLogin }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [error, setError] = useState('');
@@ -157,6 +157,21 @@ export default function MainSection({ darkMode, setMain }) {
     setError('');
     setIsUploading(true);
 
+    if (!hasAccount) {
+      try {
+        const response = await getChatList();
+        const chats = Array.isArray(response) ? response : (response?.chats || response?.data || []);
+        if (chats.length >= 1) {
+          setError('You have reached the limit of 1 free chat. Please log in or sign up to create more.');
+          setIsUploading(false);
+          if (onRequireLogin) onRequireLogin('You have reached the limit of 1 free chat. Please log in or sign up to create more.');
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking chat limit:', err);
+      }
+    }
+
     try {
       const response = await queryDocument({
         docs: selectedFiles,
@@ -194,7 +209,7 @@ export default function MainSection({ darkMode, setMain }) {
       setError('Failed to create chat. Please try again.');
       setIsUploading(false);
     }
-  }, [isUploading, selectedFiles, chatMessage, selectedRole]);
+  }, [isUploading, selectedFiles, chatMessage, selectedRole, hasAccount, onRequireLogin]);
 
   // Keyboard shortcut: Ctrl+Enter to send
   const handleKeyDown = useCallback((e) => {

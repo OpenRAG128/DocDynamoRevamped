@@ -27,7 +27,7 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(false)
   const [user, setUser] = useState(null)
   const [userId, setUserId] = useState(null)
-  const [showLogin, setShowLogin] = useState(false)
+  const [showLogin, setShowLogin] = useState({ show: false, message: '' })
 
   // If user has ever had an account 
   const [hasAccount, setHasAccount] = useState(() => {
@@ -113,8 +113,6 @@ export default function App() {
           timestamp: Date.now(),
           userId: firebaseUser.uid
         }))
-        // Preload chats for authenticated user
-        await loadChats()
       } else {
         // No Firebase user - check for guest session in localStorage
         const saved = localStorage.getItem('loginState')
@@ -126,8 +124,6 @@ export default function App() {
             if (wasLoggedIn && savedUserId?.startsWith('guest_') && Date.now() - timestamp < sevenDays) {
               setUserId(savedUserId)
               setLoggedIn(true)
-              // Preload chats for guest user
-              await loadChats()
             } else if (!savedUserId?.startsWith('guest_')) {
               // Firebase user session expired, clear localStorage
               localStorage.removeItem('loginState')
@@ -141,6 +137,12 @@ export default function App() {
           }
         }
       }
+
+      // Load chats for ALL users (authenticated, guest, or brand new session)
+      // because unauthenticated users might still have a server-side session cookie 
+      // containing their 1 free chat.
+      await loadChats()
+
       setAuthLoading(false)
     })
     return () => unsubscribe()
@@ -177,7 +179,7 @@ export default function App() {
   }
 
   // Show login screen if not logged in and showLogin is true
-  if (showLogin && !loggedIn) {
+  if (showLogin.show && !loggedIn) {
     return (
       <Login
 
@@ -185,6 +187,7 @@ export default function App() {
         setShowLogin={setShowLogin}
         setUserId={setUserId}
         setHasAccount={setHasAccount}
+        loginMessage={showLogin.message}
       />
     )
   }
@@ -209,7 +212,7 @@ export default function App() {
       setMobileMenuOpen={setMobileMenuOpen}
       loggedIn={loggedIn}
       user={user}
-      onLogin={() => setShowLogin(true)}
+      onLogin={() => setShowLogin({ show: true, message: '' })}
       onLogout={handleLogout}
       hasAccount={hasAccount}
     />
@@ -217,7 +220,7 @@ export default function App() {
 
   const sidebarElement = (
     <Sidebar
-      onLogin={() => setShowLogin(true)}
+      onLogin={() => setShowLogin({ show: true, message: '' })}
       darkMode={darkMode}
       collapsed={sidebarCollapsed}
       main={main}
@@ -244,7 +247,12 @@ export default function App() {
               <div className="flex flex-1 overflow-hidden">
                 {sidebarElement}
                 <main className="flex-1 overflow-y-auto">
-                  <MainSection darkMode={darkMode} setMain={setMain} />
+                  <MainSection
+                    darkMode={darkMode}
+                    setMain={setMain}
+                    hasAccount={hasAccount}
+                    onRequireLogin={(msg) => setShowLogin({ show: true, message: msg || '' })}
+                  />
                 </main>
               </div>
             </div>
