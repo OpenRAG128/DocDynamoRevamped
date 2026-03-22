@@ -233,65 +233,40 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
         </div>
 
         {/* Tools */}
-        <div className="px-4 mt-6">
-          <p className={`text-base mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Tools</p>
-          <button className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
-            }`}>
-            <CircleQuestionMarkIcon size={18} />
-            Questions
-          </button>
-          <button className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
-            }`}>
-            <Lightbulb size={18} />
-            Concepts
-          </button>
-          <button className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
-            }`}>
-            <EyeIcon size={18} />
-            Add-on info
-          </button>
-          <button
-            onClick={() => handleNavigation('/mobileapp')}
-            className={`flex items-center gap-3 w-full px-4 py-2 cursor-pointer rounded-md text-sm transition-colors ${darkMode
-              ? "text-gray-300 hover:bg-gray-800"
-              : "text-gray-700 hover:bg-gray-100"
-              }`}
-          >
-            <Smartphone size={18} />
-            Mobile App
-          </button>
-
-        </div>
+        
       </div>
 
       {/* Footer */}
       <div className={`p-4 space-y-2 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
         <div className="mb-4 overflow-hidden">
-          <AnimatedList key={cycle} delay={2000} className="space-y-2">
+          <AnimatedList key={cycle} delay={2000} className="space-y-2 mb-4">
             <div
-              className={`${glassBase} w-full px-4 py-3 rounded-xl ${darkMode
-                ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200"
-                : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
-                }`}
-            >
-              Know what's better than Static Documents?
-            </div>
-            <div
-              className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium ${darkMode
-                ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300"
-                : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800"
-                }`}
-            >
-              DocDynamo
-            </div>
-            <div
-              className={`${glassBase} w-full px-4 py-3 rounded-xl ${darkMode
-                ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300"
-                : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-sm"
-                }`}
-            >
-              Coz it makes them talk
-            </div>
+  className={`${glassBase} w-full px-4 py-3 rounded-xl ${
+    darkMode
+      ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200 shadow-[0_0_15px] shadow-white/5"
+      : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
+  }`}
+>
+  Need more from your files?
+</div>
+<div
+  className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium ${
+    darkMode
+      ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300 shadow-[0_0_15px] shadow-purple-400/10"
+      : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800 shadow-[0_0_15px] shadow-purple-300/50"
+  }`}
+>
+  Try DocDynamo.
+</div>
+<div
+  className={`${glassBase} w-full px-4 py-3 rounded-xl ${
+    darkMode
+      ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300 shadow-[0_0_15px] shadow-white/5"
+      : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
+  }`}
+>
+  Chat directly with them.
+</div>
           </AnimatedList>
         </div>
         {!loggedIn && (
@@ -303,7 +278,7 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
               }
               onLogin();
             }}
-            className="block w-full text-center py-2 cursor-pointer rounded-full font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+            className="block w-full text-center py-2 cursor-pointer rounded-full font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors "
           >
             {hasAccount ? 'Login' : 'Sign up'}
           </button>
