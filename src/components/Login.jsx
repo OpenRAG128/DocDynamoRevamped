@@ -4,7 +4,7 @@ import { generateGuestId } from "../util/utils.js";
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAccount }) {
+export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAccount, loginMessage }) {
     // Check if user has previously had an account to default to login mode
     const hasExistingAccount = localStorage.getItem('hasUserAccount') === 'true';
     const [isSignUp, setIsSignUp] = useState(!hasExistingAccount);
@@ -263,7 +263,14 @@ export default function Login({ setLoggedIn, setShowLogin, setUserId, setHasAcco
                     </div>
 
                     <div className="text-center mb-4 sm:mb-6">
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1">Hello!</h1>
+                        {loginMessage && (
+                            <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg text-red-800 text-sm font-medium shadow-sm animate-fadeIn">
+                                {loginMessage}
+                            </div>
+                        )}
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1">
+                            {loginMessage ? "Action Required" : "Hello!"}
+                        </h1>
                         <p className="text-gray-600 text-sm sm:text-base">
                             {isSignUp ? "Sign Up to Get Started" : "Welcome Back!"}
                         </p>

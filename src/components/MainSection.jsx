@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon, X, CheckCircle2 } from 'lucide-react';
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
-import { saveFilesToIndexedDB } from '../util/utils.js';
+import { saveFilesToIndexedDB, getUserChats } from '../util/utils.js';
 import { queryDocument } from '../util/api.js';
 import {
   FaGraduationCap,
@@ -41,7 +41,7 @@ function getFileIcon(fileName) {
   }
 }
 
-export default function MainSection({ darkMode, setMain }) {
+export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, userId, preloadedChats, onRequireLogin }) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [error, setError] = useState('');
@@ -157,6 +157,21 @@ export default function MainSection({ darkMode, setMain }) {
     setError('');
     setIsUploading(true);
 
+    if (!loggedIn) {
+      try {
+        const localChats = getUserChats(null);
+        // Note: preloadedChats length tracking fallback logic ensures consistency if they somehow have chats cached in api array
+        if (localChats.length >= 1 || (preloadedChats && preloadedChats.length >= 1)) {
+          setError('You have reached the limit of 1 free chat. Please log in or sign up to create more.');
+          setIsUploading(false);
+          if (onRequireLogin) onRequireLogin('You have reached the limit of 1 free chat. Please log in or sign up to create more.');
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking chat limit:', err);
+      }
+    }
+
     try {
       const response = await queryDocument({
         docs: selectedFiles,
@@ -194,11 +209,11 @@ export default function MainSection({ darkMode, setMain }) {
       setError('Failed to create chat. Please try again.');
       setIsUploading(false);
     }
-  }, [isUploading, selectedFiles, chatMessage, selectedRole]);
+  }, [isUploading, selectedFiles, chatMessage, selectedRole, hasAccount, onRequireLogin]);
 
-  // Keyboard shortcut: Ctrl+Enter to send
+  // Keyboard shortcut: Enter to send (without Shift so Shift+Enter adds newline)
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -433,7 +448,7 @@ export default function MainSection({ darkMode, setMain }) {
                       <button
                         disabled={isUploading}
                         aria-label="Send message and start chat"
-                        title="Send (Ctrl+Enter)"
+                        title="Send (Enter)"
                         onClick={handleSend}
                         className={`p-2 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent hover:shadow-lg cursor-pointer shrink-0 transition-all duration-200 ${isUploading ? 'opacity-50 cursor-wait' : 'hover:scale-110 active:scale-95'}`}
                       >
