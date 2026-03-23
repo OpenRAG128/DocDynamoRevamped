@@ -202,6 +202,11 @@ export default function App() {
   }
 
   // Shared layout elements
+  // Handle chat deletion locally
+  const handleChatDeleted = (chatId) => {
+    setPreloadedChats(prev => prev.filter(c => c.id !== chatId));
+  };
+
   const headerElement = (
     <Header
       darkMode={darkMode}
@@ -231,6 +236,7 @@ export default function App() {
       loggedIn={loggedIn}
       initialChats={preloadedChats}
       chatsLoading={chatsLoading}
+      onChatDeleted={handleChatDeleted}
     />
   );
 

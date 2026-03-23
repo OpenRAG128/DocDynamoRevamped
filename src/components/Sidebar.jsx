@@ -18,7 +18,7 @@ import {
   RotateCcw
 } from "lucide-react";
 
-export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn, initialChats = [], chatsLoading = false }) {
+export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn, initialChats = [], chatsLoading = false, onChatDeleted }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [cycle, setCycle] = useState(0);
@@ -73,6 +73,27 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
 
     // Optimistic UI updates - execute immediately side-effects before network delay
     setChats(chats.filter(c => c.id !== chatId));
+
+    // Update parent state (preloadedChats) so 1-chat limit is lifted
+    if (onChatDeleted) {
+      onChatDeleted(chatId);
+    }
+
+    // Also remove from guest storage if they are not logged in and it was stuck there
+    try {
+      if (!loggedIn) {
+        const localKey = "docDynamoChats_guest";
+        const localChatsStr = localStorage.getItem(localKey);
+        if (localChatsStr) {
+          const localChats = JSON.parse(localChatsStr);
+          const filtered = localChats.filter(c => c.id !== chatId);
+          localStorage.setItem(localKey, JSON.stringify(filtered));
+        }
+      }
+    } catch (err) {
+      console.error("Failed to update guest local storage:", err);
+    }
+
     setActiveDropdown(null);
     if (location.pathname === `/chat/${chatId}`) {
       navigate('/');
@@ -233,7 +254,7 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
         </div>
 
         {/* Tools */}
-        
+
       </div>
 
       {/* Footer */}
@@ -241,32 +262,29 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
         <div className="mb-4 overflow-hidden">
           <AnimatedList key={cycle} delay={2000} className="space-y-2 mb-4">
             <div
-  className={`${glassBase} w-full px-4 py-3 rounded-xl ${
-    darkMode
-      ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200 shadow-[0_0_15px] shadow-white/5"
-      : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
-  }`}
->
-  Need more from your files?
-</div>
-<div
-  className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium ${
-    darkMode
-      ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300 shadow-[0_0_15px] shadow-purple-400/10"
-      : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800 shadow-[0_0_15px] shadow-purple-300/50"
-  }`}
->
-  Try DocDynamo.
-</div>
-<div
-  className={`${glassBase} w-full px-4 py-3 rounded-xl ${
-    darkMode
-      ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300 shadow-[0_0_15px] shadow-white/5"
-      : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
-  }`}
->
-  Chat directly with them.
-</div>
+              className={`${glassBase} w-full px-4 py-3 rounded-xl ${darkMode
+                  ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200 shadow-[0_0_15px] shadow-white/5"
+                  : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
+                }`}
+            >
+              Need more from your files?
+            </div>
+            <div
+              className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium ${darkMode
+                  ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300 shadow-[0_0_15px] shadow-purple-400/10"
+                  : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800 shadow-[0_0_15px] shadow-purple-300/50"
+                }`}
+            >
+              Try DocDynamo.
+            </div>
+            <div
+              className={`${glassBase} w-full px-4 py-3 rounded-xl ${darkMode
+                  ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300 shadow-[0_0_15px] shadow-white/5"
+                  : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
+                }`}
+            >
+              Chat directly with them.
+            </div>
           </AnimatedList>
         </div>
         {!loggedIn && (
