@@ -689,7 +689,8 @@ export default function ChatPage({ darkMode, setMain }) {
                                                         <span>Additional Info</span>
                                                     </button>
                                                 )}
-                                                <button
+                                                {/* Questions */}
+                                                {/* <button
                                                     type="button"
                                                     onClick={() => setActiveInfoTab(activeInfoTab === 'questions' ? null : 'questions')}
                                                     className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold focus:outline-none transition-all duration-150 cursor-pointer border-2
@@ -705,8 +706,9 @@ export default function ChatPage({ darkMode, setMain }) {
                                                 >
                                                     <HelpCircle size={17} className={activeInfoTab === 'questions' ? (darkMode ? 'text-yellow-400' : 'text-yellow-500') : 'text-gray-400'} />
                                                     <span>Questions</span>
-                                                </button>
-                                                <button
+                                                </button> */}
+                                                {/* Concepts */}
+                                                {/* <button
                                                     type="button"
                                                     onClick={() => setActiveInfoTab(activeInfoTab === 'concepts' ? null : 'concepts')}
                                                     className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold focus:outline-none transition-all duration-150 cursor-pointer border-2
@@ -722,7 +724,7 @@ export default function ChatPage({ darkMode, setMain }) {
                                                 >
                                                     <Lightbulb size={17} className={activeInfoTab === 'concepts' ? (darkMode ? 'text-green-400' : 'text-green-500') : 'text-gray-400'} />
                                                     <span>Concepts</span>
-                                                </button>
+                                                </button> */}
                                             </div>
 
                                             {/* Related Videos panel */}
