@@ -225,10 +225,10 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
             />
             <div className='flex flex-col justify-center items-center sm:items-start sm:gap-2'>
               <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-[#3258d5] to-accent font-extrabold text-center sm:text-left leading-tight'>
-                Think Deeper
+                Insight at the
               </span>
               <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-text font-extrabold font-display text-center sm:text-left leading-tight'>
-                Research Faster
+                Speed of a Question
               </span>
             </div>
           </div>
