@@ -2,8 +2,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon, X, CheckCircle2 } from 'lucide-react';
 import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
+import PromptSuggestions from './PromptSuggestions.jsx';
 import { saveFilesToIndexedDB, getUserChats } from '../util/utils.js';
 import { queryDocument } from '../util/api.js';
+import { personas } from '../util/personas.jsx';
 import {
   FaGraduationCap,
   FaFlask,
@@ -65,17 +67,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
     return () => clearInterval(interval);
   }, []);
 
-  const roles = [
-    { label: "Student", icon: <FaGraduationCap /> },
-    { label: "Researcher", icon: <FaFlask /> },
-    { label: "Professional", icon: <FaBriefcase /> },
-    { label: "Teacher", icon: <FaChalkboardTeacher /> },
-    { label: "Product Manager", icon: <FaTasks /> },
-    { label: "Founder", icon: <FaRocket /> },
-    { label: "Developer", icon: <FaUserAlt /> },
-    { label: "Policy Maker", icon: <FaGavel /> },
-    { label: "Investor", icon: <FaCoins /> },
-  ];
+  const roles = personas.map(p => ({ label: p.label, icon: p.icon }));
 
   const handleFiles = useCallback((files) => {
     if (!files || files.length === 0) return;
@@ -226,6 +218,11 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
       return () => clearTimeout(timeout);
     }
   }, [selectedFiles, chatMessage, error]);
+
+  const handleSelectPrompt = (promptText, roleName) => {
+    setChatMessage(promptText);
+    setSelectedRole(roleName);
+  };
 
   return (
     <div className='flex flex-col w-full min-h-full'>
@@ -470,15 +467,13 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                 </div>
               </div>
             </div>
+
           </div>
-          <div className='animate-fadeIn animation-delay-400 w-full flex flex-col items-center'>
-            <Card
-              quote="It's like ChatGPT, but for"
-              highlightText=" research papers."
-              authorName="Rick Grimes, PhD"
-              authorHandle="@SolictingSherrif"
-              authorImage="/avatar.jpg"
+          <div className='animate-fadeIn animation-delay-400 w-full flex flex-col items-center max-w-7xl'>
+            {/* Prompt Suggestions Grid */}
+            <PromptSuggestions
               darkMode={darkMode}
+              onSelectPrompt={handleSelectPrompt}
             />
           </div>
           <FeaturesSection darkMode={darkMode} />
