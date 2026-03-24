@@ -376,7 +376,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
 
                     {/* Custom Role Dropdown */}
                     <div className="flex items-center gap-2 mt-2">
-                      <div ref={dropdownRef} className="relative flex-1 max-w-[180px]">
+                      <div ref={dropdownRef} className="relative flex-1 max-w-[240px]">
                         <button
                           type="button"
                           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -385,9 +385,9 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                             : 'bg-white border border-gray-300 text-text hover:border-gray-400'
                             }`}
                         >
-                          <span className="flex items-center gap-2">
-                            {roles.find(r => r.label === selectedRole)?.icon}
-                            <span className="truncate">{selectedRole}</span>
+                          <span className="flex items-center gap-2 min-w-0 pr-2">
+                            <span className="shrink-0 flex items-center">{roles.find(r => r.label === selectedRole)?.icon}</span>
+                            <span className="truncate text-left">{selectedRole}</span>
                           </span>
                           <svg
                             className={`w-4 h-4 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
@@ -400,7 +400,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                         </button>
 
                         {isDropdownOpen && (
-                          <div className={`absolute bottom-full mb-1 z-50 w-full rounded-lg shadow-lg max-h-48 overflow-y-auto ${darkMode
+                          <div className={`absolute bottom-full left-0 mb-1 z-50 min-w-full w-max max-w-[280px] rounded-lg shadow-lg max-h-48 overflow-y-auto ${darkMode
                             ? 'bg-gray-700 border border-gray-600'
                             : 'bg-white border border-gray-300'
                             }`}>
@@ -408,6 +408,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                               <button
                                 key={role.label}
                                 type="button"
+                                title={role.label}
                                 onClick={() => {
                                   setSelectedRole(role.label);
                                   setIsDropdownOpen(false);
@@ -421,8 +422,8 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                                     : 'text-text hover:bg-gray-100'
                                   }`}
                               >
-                                {role.icon}
-                                {role.label}
+                                <span className="shrink-0 flex items-center">{role.icon}</span>
+                                <span className="truncate text-left">{role.label}</span>
                               </button>
                             ))}
                           </div>
