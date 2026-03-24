@@ -1,30 +1,18 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon, X, CheckCircle2 } from 'lucide-react';
-import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
 import PromptSuggestions from './PromptSuggestions.jsx';
 import { saveFilesToIndexedDB, getUserChats } from '../util/utils.js';
 import { queryDocument } from '../util/api.js';
 import { personas } from '../util/personas.jsx';
-import {
-  FaGraduationCap,
-  FaFlask,
-  FaBriefcase,
-  FaChalkboardTeacher,
-  FaTasks,
-  FaRocket,
-  FaUserAlt,
-  FaGavel,
-  FaCoins,
-} from "react-icons/fa";
 import Footer from './Footer.jsx';
 
 const placeholderSuggestions = [
-  'Summarize this document in bullet points',
-  'What are the key takeaways?',
-  'Explain the main argument',
-  'List all important dates and figures',
-  'Compare and contrast the themes',
+  'What are the key variance drivers vs last quarter?',
+  'Summarise PMLA obligations for NBFCs',
+  'What changed in latest RBI circular?',
+  'What are all events of default in this agreement?',
+  'List all contingent liabilities disclosed',
 ];
 
 function formatFileSize(bytes) {
