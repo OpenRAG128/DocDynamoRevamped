@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload, Loader2, PlayCircle, Info } from 'lucide-react';
+import { ArrowLeft, FileText, SendHorizontalIcon, Download, X, ChevronRight, Upload, Loader2, PlayCircle, Info, HelpCircle, Lightbulb } from 'lucide-react';
 import { getFilesFromIndexedDB, saveFilesToIndexedDB } from '@/util/utils.js';
-import { sendChatMessage, getChatMessages } from '@/util/api.js';
+import { sendChatMessage, getChatMessages, generateQuestions, generateConcepts } from '@/util/api.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import ChatMessage from '@/components/ChatMessage.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
@@ -44,6 +44,30 @@ export default function ChatPage({ darkMode, setMain }) {
     const [recommendations, setRecommendations] = useState([]);
     const [additionalInfo, setAdditionalInfo] = useState(null);
     const [activeInfoTab, setActiveInfoTab] = useState(null);
+    const [questions, setQuestions] = useState(null);
+    const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+    const [concepts, setConcepts] = useState(null);
+    const [isLoadingConcepts, setIsLoadingConcepts] = useState(false);
+
+    // Fetch questions and concepts when tabs are activated
+    useEffect(() => {
+        if (!chatId) return;
+
+        if (activeInfoTab === 'questions' && !questions && !isLoadingQuestions) {
+            setIsLoadingQuestions(true);
+            generateQuestions()
+                .then(res => setQuestions(res))
+                .catch(e => console.error('Error generating questions:', e))
+                .finally(() => setIsLoadingQuestions(false));
+        }
+        if (activeInfoTab === 'concepts' && !concepts && !isLoadingConcepts) {
+            setIsLoadingConcepts(true);
+            generateConcepts()
+                .then(res => setConcepts(res))
+                .catch(e => console.error('Error generating concepts:', e))
+                .finally(() => setIsLoadingConcepts(false));
+        }
+    }, [activeInfoTab, questions, concepts, isLoadingQuestions, isLoadingConcepts, chatId]);
 
     // Track container width for responsive PDF sizing
     useEffect(() => {
@@ -621,7 +645,7 @@ export default function ChatPage({ darkMode, setMain }) {
                         return (
                             <div key={m.id}>
                                 <ChatMessage message={m} darkMode={darkMode} />
-                                {isFirstAssistant && (recommendations.length > 0 || additionalInfo) && (
+                                {isFirstAssistant && (
                                     <div className={`flex gap-3 mt-4`}>
                                         <div className="shrink-0 w-8" />
                                         <div className="flex-1 flex flex-col gap-2">
@@ -665,6 +689,42 @@ export default function ChatPage({ darkMode, setMain }) {
                                                         <span>Additional Info</span>
                                                     </button>
                                                 )}
+                                                {/* Questions */}
+                                                {/* <button
+                                                    type="button"
+                                                    onClick={() => setActiveInfoTab(activeInfoTab === 'questions' ? null : 'questions')}
+                                                    className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold focus:outline-none transition-all duration-150 cursor-pointer border-2
+                                                        ${activeInfoTab === 'questions'
+                                                            ? darkMode
+                                                                ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500 shadow-md'
+                                                                : 'bg-yellow-50 text-yellow-600 border-yellow-400 shadow-md'
+                                                            : darkMode
+                                                                ? 'bg-gray-900 text-gray-300 border-gray-700 hover:bg-gray-800 hover:border-yellow-500'
+                                                                : 'bg-white text-gray-700 border-gray-200 hover:bg-yellow-50 hover:border-yellow-400'}
+                                                    `}
+                                                    style={{ boxShadow: activeInfoTab === 'questions' ? (darkMode ? '0 2px 8px rgba(234,179,8,0.08)' : '0 2px 8px rgba(234,179,8,0.10)') : undefined }}
+                                                >
+                                                    <HelpCircle size={17} className={activeInfoTab === 'questions' ? (darkMode ? 'text-yellow-400' : 'text-yellow-500') : 'text-gray-400'} />
+                                                    <span>Questions</span>
+                                                </button> */}
+                                                {/* Concepts */}
+                                                {/* <button
+                                                    type="button"
+                                                    onClick={() => setActiveInfoTab(activeInfoTab === 'concepts' ? null : 'concepts')}
+                                                    className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold focus:outline-none transition-all duration-150 cursor-pointer border-2
+                                                        ${activeInfoTab === 'concepts'
+                                                            ? darkMode
+                                                                ? 'bg-green-500/20 text-green-500 border-green-500 shadow-md'
+                                                                : 'bg-green-50 text-green-600 border-green-400 shadow-md'
+                                                            : darkMode
+                                                                ? 'bg-gray-900 text-gray-300 border-gray-700 hover:bg-gray-800 hover:border-green-500'
+                                                                : 'bg-white text-gray-700 border-gray-200 hover:bg-green-50 hover:border-green-400'}
+                                                    `}
+                                                    style={{ boxShadow: activeInfoTab === 'concepts' ? (darkMode ? '0 2px 8px rgba(34,197,94,0.08)' : '0 2px 8px rgba(34,197,94,0.10)') : undefined }}
+                                                >
+                                                    <Lightbulb size={17} className={activeInfoTab === 'concepts' ? (darkMode ? 'text-green-400' : 'text-green-500') : 'text-gray-400'} />
+                                                    <span>Concepts</span>
+                                                </button> */}
                                             </div>
 
                                             {/* Related Videos panel */}
@@ -718,6 +778,58 @@ export default function ChatPage({ darkMode, setMain }) {
                                                     </div>
                                                     <div className={`text-sm leading-relaxed whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                                         {typeof additionalInfo === 'string' ? additionalInfo : JSON.stringify(additionalInfo, null, 2)}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Questions panel */}
+                                            {activeInfoTab === 'questions' && (
+                                                <div className={`rounded-xl p-3 ${darkMode ? 'bg-gray-900/60 border border-gray-800/80' : 'bg-gray-50 border border-gray-200/80'}`}>
+                                                    <div className="flex items-center gap-2 mb-2.5">
+                                                        <div className={`p-1 rounded-md ${darkMode ? 'bg-yellow-500/15' : 'bg-yellow-50'}`}>
+                                                            <HelpCircle size={13} className="text-yellow-500" />
+                                                        </div>
+                                                        <h3 className={`text-xs font-semibold tracking-wide uppercase ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Questions</h3>
+                                                    </div>
+                                                    <div className={`text-sm leading-relaxed whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                        {isLoadingQuestions ? (
+                                                            <div className="flex items-center gap-2 text-yellow-500/70">
+                                                                <Loader2 size={14} className="animate-spin" />
+                                                                <span>Generating questions...</span>
+                                                            </div>
+                                                        ) : (
+                                                            questions ? (
+                                                                typeof questions === 'string' ? questions : JSON.stringify(questions, null, 2)
+                                                            ) : (
+                                                                <span className="italic opacity-60">No questions available.</span>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Concepts panel */}
+                                            {activeInfoTab === 'concepts' && (
+                                                <div className={`rounded-xl p-3 ${darkMode ? 'bg-gray-900/60 border border-gray-800/80' : 'bg-gray-50 border border-gray-200/80'}`}>
+                                                    <div className="flex items-center gap-2 mb-2.5">
+                                                        <div className={`p-1 rounded-md ${darkMode ? 'bg-green-500/15' : 'bg-green-50'}`}>
+                                                            <Lightbulb size={13} className="text-green-500" />
+                                                        </div>
+                                                        <h3 className={`text-xs font-semibold tracking-wide uppercase ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Concepts</h3>
+                                                    </div>
+                                                    <div className={`text-sm leading-relaxed whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                        {isLoadingConcepts ? (
+                                                            <div className="flex items-center gap-2 text-green-500/70">
+                                                                <Loader2 size={14} className="animate-spin" />
+                                                                <span>Generating concepts...</span>
+                                                            </div>
+                                                        ) : (
+                                                            concepts ? (
+                                                                typeof concepts === 'string' ? concepts : JSON.stringify(concepts, null, 2)
+                                                            ) : (
+                                                                <span className="italic opacity-60">No concepts available.</span>
+                                                            )
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}

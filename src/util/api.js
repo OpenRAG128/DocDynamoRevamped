@@ -43,6 +43,7 @@ export async function generateQuestions() {
   const response = await fetch(`${API_URL}/generate_questions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({}),
   });
 
@@ -61,6 +62,7 @@ export async function generateConcepts() {
   const response = await fetch(`${API_URL}/generate_concepts`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({}),
   });
 
@@ -97,6 +99,7 @@ export async function processUrls(urls) {
 export async function resetSession() {
   const response = await fetch(`${API_URL}/start_over`, {
     method: "POST",
+    credentials: "include"
   });
 
   if (!response.ok) {

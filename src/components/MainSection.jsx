@@ -1,28 +1,18 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon, X, CheckCircle2 } from 'lucide-react';
-import Card from './Card.jsx';
 import FeaturesSection from './FeaturesSection.jsx';
+import PromptSuggestions from './PromptSuggestions.jsx';
 import { saveFilesToIndexedDB, getUserChats } from '../util/utils.js';
 import { queryDocument } from '../util/api.js';
-import {
-  FaGraduationCap,
-  FaFlask,
-  FaBriefcase,
-  FaChalkboardTeacher,
-  FaTasks,
-  FaRocket,
-  FaUserAlt,
-  FaGavel,
-  FaCoins,
-} from "react-icons/fa";
+import { personas } from '../util/personas.jsx';
 import Footer from './Footer.jsx';
 
 const placeholderSuggestions = [
-  'Summarize this document in bullet points',
-  'What are the key takeaways?',
-  'Explain the main argument',
-  'List all important dates and figures',
-  'Compare and contrast the themes',
+  'What are the key variance drivers vs last quarter?',
+  'Summarise PMLA obligations for NBFCs',
+  'What changed in latest RBI circular?',
+  'What are all events of default in this agreement?',
+  'List all contingent liabilities disclosed',
 ];
 
 function formatFileSize(bytes) {
@@ -65,17 +55,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
     return () => clearInterval(interval);
   }, []);
 
-  const roles = [
-    { label: "Student", icon: <FaGraduationCap /> },
-    { label: "Researcher", icon: <FaFlask /> },
-    { label: "Professional", icon: <FaBriefcase /> },
-    { label: "Teacher", icon: <FaChalkboardTeacher /> },
-    { label: "Product Manager", icon: <FaTasks /> },
-    { label: "Founder", icon: <FaRocket /> },
-    { label: "Developer", icon: <FaUserAlt /> },
-    { label: "Policy Maker", icon: <FaGavel /> },
-    { label: "Investor", icon: <FaCoins /> },
-  ];
+  const roles = personas.map(p => ({ label: p.label, icon: p.icon }));
 
   const handleFiles = useCallback((files) => {
     if (!files || files.length === 0) return;
@@ -227,6 +207,11 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
     }
   }, [selectedFiles, chatMessage, error]);
 
+  const handleSelectPrompt = (promptText, roleName) => {
+    setChatMessage(promptText);
+    setSelectedRole(roleName);
+  };
+
   return (
     <div className='flex flex-col w-full min-h-full'>
       <div className='flex justify-center items-center flex-1 w-full bg-background px-3 sm:px-6 lg:px-8 py-4'>
@@ -240,10 +225,10 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
             />
             <div className='flex flex-col justify-center items-center sm:items-start sm:gap-2'>
               <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-[#3258d5] to-accent font-extrabold text-center sm:text-left leading-tight'>
-                Think Deeper
+                Insight at the
               </span>
               <span className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-text font-extrabold font-display text-center sm:text-left leading-tight'>
-                Research Faster
+                Speed of a Question
               </span>
             </div>
           </div>
@@ -391,7 +376,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
 
                     {/* Custom Role Dropdown */}
                     <div className="flex items-center gap-2 mt-2">
-                      <div ref={dropdownRef} className="relative flex-1 max-w-[180px]">
+                      <div ref={dropdownRef} className="relative flex-1 max-w-[240px]">
                         <button
                           type="button"
                           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -400,9 +385,9 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                             : 'bg-white border border-gray-300 text-text hover:border-gray-400'
                             }`}
                         >
-                          <span className="flex items-center gap-2">
-                            {roles.find(r => r.label === selectedRole)?.icon}
-                            <span className="truncate">{selectedRole}</span>
+                          <span className="flex items-center gap-2 min-w-0 pr-2">
+                            <span className="shrink-0 flex items-center">{roles.find(r => r.label === selectedRole)?.icon}</span>
+                            <span className="truncate text-left">{selectedRole}</span>
                           </span>
                           <svg
                             className={`w-4 h-4 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
@@ -415,7 +400,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                         </button>
 
                         {isDropdownOpen && (
-                          <div className={`absolute bottom-full mb-1 z-50 w-full rounded-lg shadow-lg max-h-48 overflow-y-auto ${darkMode
+                          <div className={`absolute bottom-full left-0 mb-1 z-50 min-w-full w-max max-w-[280px] rounded-lg shadow-lg max-h-48 overflow-y-auto ${darkMode
                             ? 'bg-gray-700 border border-gray-600'
                             : 'bg-white border border-gray-300'
                             }`}>
@@ -423,6 +408,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                               <button
                                 key={role.label}
                                 type="button"
+                                title={role.label}
                                 onClick={() => {
                                   setSelectedRole(role.label);
                                   setIsDropdownOpen(false);
@@ -436,8 +422,8 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                                     : 'text-text hover:bg-gray-100'
                                   }`}
                               >
-                                {role.icon}
-                                {role.label}
+                                <span className="shrink-0 flex items-center">{role.icon}</span>
+                                <span className="truncate text-left">{role.label}</span>
                               </button>
                             ))}
                           </div>
@@ -470,15 +456,13 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                 </div>
               </div>
             </div>
+
           </div>
-          <div className='animate-fadeIn animation-delay-400 w-full flex flex-col items-center'>
-            <Card
-              quote="It's like ChatGPT, but for"
-              highlightText=" research papers."
-              authorName="Rick Grimes, PhD"
-              authorHandle="@SolictingSherrif"
-              authorImage="/avatar.jpg"
+          <div className='animate-fadeIn animation-delay-400 w-full flex flex-col items-center max-w-7xl'>
+            {/* Prompt Suggestions Grid */}
+            <PromptSuggestions
               darkMode={darkMode}
+              onSelectPrompt={handleSelectPrompt}
             />
           </div>
           <FeaturesSection darkMode={darkMode} />
