@@ -415,7 +415,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                                 }}
                                 className={`w-full cursor-pointer px-3 py-2 text-sm flex items-center gap-2 transition-colors ${selectedRole === role.label
                                   ? darkMode
-                                    ? 'bg-accent/90 text-accent'
+                                    ? 'bg-accent/20 text-blue-400'
                                     : 'bg-accent/10 text-accent'
                                   : darkMode
                                     ? 'text-text hover:bg-gray-600'
