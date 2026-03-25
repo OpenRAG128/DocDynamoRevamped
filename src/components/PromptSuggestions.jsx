@@ -20,7 +20,7 @@ export default function PromptSuggestions({ darkMode, onSelectPrompt }) {
                     >
                         {/* Header */}
                         <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                            <div className={`p-3 sm:p-4 rounded-full flex-shrink-0 ${darkMode ? 'bg-gray-700 text-accent' : 'bg-blue-50 text-[#3258d5]'}`}>
+                            <div className={`p-3 sm:p-4 rounded-full flex-shrink-0 ${darkMode ? 'bg-gray-700 text-blue-400' : 'bg-blue-50 text-[#3258d5]'}`}>
                                 {React.cloneElement(persona.icon, { className: "w-5 h-5 sm:w-7 sm:h-7" })}
                             </div>
                             <div className="flex flex-col">
@@ -57,13 +57,13 @@ export default function PromptSuggestions({ darkMode, onSelectPrompt }) {
                             ))}
                         </div>
 
-                        {/* Create custom prompt link */}
+                        {/* Create custom prompt link
                         <button
                             onClick={() => onSelectPrompt('', persona.label)}
                             className="mt-4 sm:mt-6 text-sm text-accent/80 hover:text-accent font-medium text-center transition-colors flex items-center justify-center gap-1"
                         >
                             + Create a custom prompt
-                        </button>
+                        </button> */}
                     </div>
                 ))}
             </div>
