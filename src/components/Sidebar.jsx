@@ -340,18 +340,6 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
             >
               <MessageCircle size={20} />
             </button>
-            <button
-              className={`transition-colors ${darkMode ? "text-gray-400 hover:text-purple-400" : "text-gray-600 hover:text-purple-600"}`}
-              aria-label="Folders"
-            >
-              <Folder size={20} />
-            </button>
-            <button
-              className={`transition-colors ${darkMode ? "text-gray-400 hover:text-purple-400" : "text-gray-600 hover:text-purple-600"}`}
-              aria-label="Tools"
-            >
-              <Wrench size={20} />
-            </button>
           </div>
         ) : (
           <SidebarContent />
