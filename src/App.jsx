@@ -19,7 +19,7 @@ export default function App() {
   });
   const [main, setMain] = useState(false);
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Auth state - initialized as null/false, Firebase will set actual values
@@ -211,8 +211,8 @@ export default function App() {
     <Header
       darkMode={darkMode}
       toggleDarkMode={() => setDarkMode(prev => !prev)}
-      sidebarCollapsed={sidebarCollapsed}
-      toggleSidebar={() => setSidebarCollapsed(prev => !prev)}
+      Collapsed={collapsed}
+      toggleSidebar={() => setCollapsed(prev => !prev)}
       mobileMenuOpen={mobileMenuOpen}
       setMobileMenuOpen={setMobileMenuOpen}
       loggedIn={loggedIn}
@@ -227,7 +227,8 @@ export default function App() {
     <Sidebar
       onLogin={() => setShowLogin({ show: true, message: '' })}
       darkMode={darkMode}
-      collapsed={sidebarCollapsed}
+      collapsed={collapsed}
+      toggleSidebar={() => setCollapsed(prev => !prev)}
       main={main}
       userId={userId}
       mobileMenuOpen={mobileMenuOpen}

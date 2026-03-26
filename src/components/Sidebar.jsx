@@ -18,12 +18,12 @@ import {
   RotateCcw
 } from "lucide-react";
 
-export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn, initialChats = [], chatsLoading = false, onChatDeleted }) {
+export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, userId, mobileMenuOpen, setMobileMenuOpen, hasAccount, onLogin, loggedIn, initialChats = [], chatsLoading = false, onChatDeleted }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [cycle, setCycle] = useState(0);
   const [chats, setChats] = useState(initialChats);
-
+  
   const [activeDropdown, setActiveDropdown] = useState(null); // { id, top, left } or null
   const [renamingChat, setRenamingChat] = useState(null);
   const [newChatTitle, setNewChatTitle] = useState("");
@@ -353,6 +353,7 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
           /* Collapsed View */
           <div className="flex flex-col items-center gap-6 mt-10">
             <button
+              onClick={toggleSidebar}
               className={`transition-colors ${darkMode ? "text-gray-400 hover:text-purple-400" : "text-gray-600 hover:text-purple-600"}`}
               aria-label="Chats"
             >
