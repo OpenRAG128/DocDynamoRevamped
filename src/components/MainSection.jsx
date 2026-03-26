@@ -289,8 +289,8 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
 
                 {selectedFiles.length === 0 ?
                   <div className='relative z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-6'>
-                    <div className={`p-3 sm:p-4 rounded-full transition-all duration-300 ${darkMode ? 'bg-gray-700 group-hover:bg-accent/20' : 'bg-gray-200 group-hover:bg-accent/10'}`}>
-                      <Upload size={28} className={`sm:w-8 sm:h-8 transition-all duration-300 ${isDragging ? 'text-accent animate-bounce' : 'text-gray-500 group-hover:text-accent'}`} />
+                    <div className={`p-3 sm:p-4 rounded-full transition-all duration-300 ${darkMode ? 'bg-gray-700 text-blue-400 group-hover:bg-gray-600' : 'bg-blue-50 text-[#3258d5] group-hover:bg-blue-100'}`}>
+                      <Upload size={28} className={`sm:w-8 sm:h-8 transition-all duration-300 ${isDragging ? 'animate-bounce' : 'group-hover:scale-110'}`} />
                     </div>
                     <div className='flex flex-col items-center gap-2'>
                       <p className='text-text font-semibold text-base sm:text-lg'>Drop files here</p>
