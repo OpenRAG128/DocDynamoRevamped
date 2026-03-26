@@ -38,18 +38,18 @@ export default function PromptSuggestions({ darkMode, onSelectPrompt }) {
                             {persona.prompts.map((prompt, index) => (
                                 <div
                                     key={index}
-                                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all
+                                    className={`flex flex-col justify-between gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all
                     ${darkMode
                                             ? 'bg-gray-900/50 border border-gray-700/50'
                                             : 'bg-gray-50 border border-gray-100'
                                         }`}
                                 >
-                                    <p className="text-sm sm:text-sm text-text font-medium flex-1 text-center sm:text-left">
+                                    <p className="text-sm text-text font-medium text-left mb-1">
                                         {prompt}
                                     </p>
                                     <button
                                         onClick={() => onSelectPrompt(prompt, persona.label)}
-                                        className="w-full sm:w-auto flex items-center justify-center whitespace-nowrap gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-xs sm:text-sm font-medium hover:shadow-md hover:scale-105 transition-all duration-200"
+                                        className="w-full flex items-center justify-center whitespace-nowrap gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gradient-to-r from-[#3258d5] to-accent text-white text-xs sm:text-sm font-medium hover:shadow-md hover:scale-105 transition-all duration-200"
                                     >
                                         Run Prompt <span className="text-sm sm:text-lg leading-none">→</span>
                                     </button>

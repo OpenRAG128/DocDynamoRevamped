@@ -225,7 +225,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
           {/* Hero Section Header*/}
           <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 font-family-sans mt-2 animate-fadeIn'>
             <img
-              src="/hero.png"
+              src="/hero_2.png"
               alt="Contextual Intelligence"
               className='w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 drop-shadow-2xl'
             />
