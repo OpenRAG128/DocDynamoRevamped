@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './util/firebase'
-import { clearUserChats } from './util/utils'
+import { clearUserChats, getUserChats } from './util/utils'
 import { getChatList, getChatMessages } from './util/api'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
@@ -39,39 +39,69 @@ export default function App() {
   const [chatsLoading, setChatsLoading] = useState(false)
 
   // Helper to load and format chats
-  const loadChats = async () => {
+  const loadChats = async (currentUserId) => {
     setChatsLoading(true)
     try {
-      const response = await getChatList()
-      const chatList = Array.isArray(response) ? response : (response?.chats || response?.data || [])
-      if (!Array.isArray(chatList)) {
-        setPreloadedChats([])
-        return
-      }
-      const formattedChats = chatList.map(chat => {
-        // Handle timestamp conversion - support both seconds, milliseconds, and ISO strings
-        let timestamp;
-        if (chat.updated_at) {
-          if (typeof chat.updated_at === 'number') {
-            // If timestamp is less than 10 billion, it's likely in seconds; otherwise milliseconds
-            timestamp = chat.updated_at < 10000000000
-              ? new Date(chat.updated_at * 1000).toISOString()
-              : new Date(chat.updated_at).toISOString();
-          } else {
-            // Handle ISO string or other date formats
-            timestamp = new Date(chat.updated_at).toISOString();
-          }
-        } else {
-          timestamp = new Date().toISOString();
-        }
+      // 1. Fetch backend chats
+      let backendChats = []
+      try {
+        const response = await getChatList()
+        const chatList = Array.isArray(response) ? response : (response?.chats || response?.data || [])
+        if (Array.isArray(chatList)) {
+          backendChats = chatList.map(chat => {
+            // Handle timestamp conversion
+            let timestamp;
+            if (chat.updated_at) {
+              if (typeof chat.updated_at === 'number') {
+                timestamp = chat.updated_at < 10000000000
+                  ? new Date(chat.updated_at * 1000).toISOString()
+                  : new Date(chat.updated_at).toISOString();
+              } else {
+                timestamp = new Date(chat.updated_at).toISOString();
+              }
+            } else {
+              timestamp = new Date().toISOString();
+            }
 
-        return {
-          id: chat._id,
+            return {
+              id: chat._id,
+              title: chat.title || 'Untitled Chat',
+              timestamp,
+              firstMessage: null, // Will be populated if title is "New Chat"
+            };
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching backend chats:', err)
+      }
+
+      // 2. Fetch local chats (from localStorage)
+      let localChats = []
+      try {
+        localChats = getUserChats(currentUserId)
+      } catch (err) {
+        console.error('Error fetching local chats:', err)
+      }
+
+      // 3. Merge and deduplicate (favoring local or backend if ID matches? Let's favor backend)
+      const mergedChatsMap = new Map()
+
+      // Add local chats first
+      localChats.forEach(chat => {
+        mergedChatsMap.set(chat.id, {
+          id: chat.id,
           title: chat.title || 'Untitled Chat',
-          timestamp,
-          firstMessage: null, // Will be populated if title is "New Chat"
-        };
+          timestamp: chat.timestamp || new Date().toISOString(),
+          firstMessage: chat.message || null,
+        })
       })
+
+      // Overwrite with backend chats if they exist
+      backendChats.forEach(chat => {
+        mergedChatsMap.set(chat.id, chat)
+      })
+
+      const formattedChats = Array.from(mergedChatsMap.values())
       formattedChats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
       // For chats with "New Chat" title, fetch the first user message to use as display
@@ -141,7 +171,8 @@ export default function App() {
       // Load chats for ALL users (authenticated, guest, or brand new session)
       // because unauthenticated users might still have a server-side session cookie 
       // containing their 1 free chat.
-      await loadChats()
+      const currentId = firebaseUser?.uid || JSON.parse(localStorage.getItem('loginState') || '{}')?.userId || null;
+      await loadChats(currentId)
 
       setAuthLoading(false)
     })

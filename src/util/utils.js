@@ -121,7 +121,24 @@ export const getUserChatStorageKey = (userId) => {
 export const getUserChats = (userId) => {
   try {
     const key = getUserChatStorageKey(userId);
-    return JSON.parse(localStorage.getItem(key) || "[]");
+    let chats = JSON.parse(localStorage.getItem(key) || "[]");
+    
+    // Also include legacy chats if they exist
+    try {
+      const legacyKey = "docDynamoChats";
+      if (key !== legacyKey) {
+        const legacyChats = JSON.parse(localStorage.getItem(legacyKey) || "[]");
+        if (legacyChats.length > 0) {
+          const existingIds = new Set(chats.map(c => c.id));
+          const newLegacyChats = legacyChats.filter(c => !existingIds.has(c.id));
+          chats = [...chats, ...newLegacyChats];
+        }
+      }
+    } catch (e) {
+      console.error("Error loading legacy chats:", e);
+    }
+    
+    return chats;
   } catch (error) {
     console.error("Error loading user chats:", error);
     return [];
