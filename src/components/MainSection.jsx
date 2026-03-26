@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon, X, CheckCircle2 } from 'lucide-react';
 import FeaturesSection from './FeaturesSection.jsx';
 import PromptSuggestions from './PromptSuggestions.jsx';
-import { saveFilesToIndexedDB, getUserChats } from '../util/utils.js';
+import { saveFilesToIndexedDB, getUserChats, saveChatWithCloudSync } from '../util/utils.js';
 import { queryDocument } from '../util/api.js';
 import { personas } from '../util/personas.jsx';
 import Footer from './Footer.jsx';
@@ -182,7 +182,13 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
         );
       }
 
-      await saveFilesToIndexedDB(selectedFiles, chatId);
+      await saveChatWithCloudSync(
+        chatId,
+        { role: selectedRole, message: chatMessage },
+        selectedFiles,
+        userId
+      );
+
       window.location.href = `/chat/${chatId}`;
     } catch (err) {
       console.error('Error creating chat:', err);
@@ -415,7 +421,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                                 }}
                                 className={`w-full cursor-pointer px-3 py-2 text-sm flex items-center gap-2 transition-colors ${selectedRole === role.label
                                   ? darkMode
-                                    ? 'bg-accent/90 text-accent'
+                                    ? 'bg-accent/20 text-blue-400'
                                     : 'bg-accent/10 text-accent'
                                   : darkMode
                                     ? 'text-text hover:bg-gray-600'

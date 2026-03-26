@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatedList } from "./AnimatedList.jsx";
 import { renameChat, deleteChat, resetSession } from "../util/api.js";
+import { deleteChatWithCloudSync, saveChatToCloud } from "../util/utils.js";
 import {
   MessageCircle,
   Folder,
@@ -56,12 +57,34 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
     const newTitle = newChatTitle.trim();
     const targetChatId = renamingChat.id;
 
-    // Optimsitic UI Update
+    // Optimistic UI Update
     setChats(chats.map(c => c.id === targetChatId ? { ...c, title: newTitle } : c));
     setRenamingChat(null);
 
+    // Also update local storage if it's there
+    try {
+      const keysToCheck = ["docDynamoChats_guest", "docDynamoChats", userId ? `docDynamoChats_${userId}` : null].filter(Boolean);
+      keysToCheck.forEach(key => {
+        const localChatsStr = localStorage.getItem(key);
+        if (localChatsStr) {
+          const localChats = JSON.parse(localChatsStr);
+          const updated = localChats.map(c => c.id === targetChatId ? { ...c, title: newTitle } : c);
+          localStorage.setItem(key, JSON.stringify(updated));
+        }
+      });
+    } catch (err) {
+      console.error("Failed to update local storage for rename:", err);
+    }
+
     try {
       await renameChat(targetChatId, newTitle);
+      // Synchronize update to Firestore
+      if (userId && !userId.startsWith("guest_")) {
+        const chatToUpdate = chats.find(c => c.id === targetChatId);
+        if (chatToUpdate) {
+          await saveChatToCloud({ ...chatToUpdate, title: newTitle }, userId);
+        }
+      }
     } catch (err) {
       console.error("Failed to rename chat", err);
       // Optional: Rollback logic would go here
@@ -79,19 +102,22 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
       onChatDeleted(chatId);
     }
 
-    // Also remove from guest storage if they are not logged in and it was stuck there
+    // Also remove from local storage and IndexedDB
     try {
-      if (!loggedIn) {
-        const localKey = "docDynamoChats_guest";
-        const localChatsStr = localStorage.getItem(localKey);
+      await deleteChatWithCloudSync(chatId, userId);
+
+      // Fallback for legacy keys just in case
+      const keysToCheck = ["docDynamoChats_guest", "docDynamoChats"].filter(Boolean);
+      keysToCheck.forEach(key => {
+        const localChatsStr = localStorage.getItem(key);
         if (localChatsStr) {
           const localChats = JSON.parse(localChatsStr);
           const filtered = localChats.filter(c => c.id !== chatId);
-          localStorage.setItem(localKey, JSON.stringify(filtered));
+          localStorage.setItem(key, JSON.stringify(filtered));
         }
-      }
+      });
     } catch (err) {
-      console.error("Failed to update guest local storage:", err);
+      console.error("Failed to update local storage:", err);
     }
 
     setActiveDropdown(null);
@@ -263,24 +289,24 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
           <AnimatedList key={cycle} delay={2000} className="space-y-2 mb-4">
             <div
               className={`${glassBase} w-full px-4 py-3 rounded-xl ${darkMode
-                  ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200 shadow-[0_0_15px] shadow-white/5"
-                  : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
+                ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-200 shadow-[0_0_15px] shadow-white/5"
+                : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
                 }`}
             >
               Need more from your files?
             </div>
             <div
               className={`${glassBase} w-full px-4 py-3 rounded-xl font-medium ${darkMode
-                  ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300 shadow-[0_0_15px] shadow-purple-400/10"
-                  : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800 shadow-[0_0_15px] shadow-purple-300/50"
+                ? "bg-gradient-to-br from-purple-400/30 via-purple-300/15 to-purple-200/5 border-purple-300/30 text-purple-300 shadow-[0_0_15px] shadow-purple-400/10"
+                : "bg-gradient-to-br from-purple-300/60 via-purple-200/40 to-purple-100/20 border-purple-400/40 text-purple-800 shadow-[0_0_15px] shadow-purple-300/50"
                 }`}
             >
               Try DocDynamo.
             </div>
             <div
               className={`${glassBase} w-full px-4 py-3 rounded-xl ${darkMode
-                  ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300 shadow-[0_0_15px] shadow-white/5"
-                  : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
+                ? "bg-gradient-to-br from-white/20 via-white/10 to-white/5 border-white/20 text-gray-300 shadow-[0_0_15px] shadow-white/5"
+                : "bg-gradient-to-br from-gray-400/60 via-gray-300/40 to-gray-200/20 border-gray-400/40 text-gray-800 shadow-[0_0_15px] shadow-gray-400/40"
                 }`}
             >
               Chat directly with them.

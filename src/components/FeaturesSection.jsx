@@ -22,7 +22,7 @@ const FeatureCard = ({ icon: Icon, title, description, children, darkMode }) => 
             {/* Icon */}
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300
         ${darkMode
-                    ? 'bg-accent/20 text-accent group-hover:bg-accent/30'
+                    ? 'bg-accent/20 text-blue-400 group-hover:bg-accent/30'
                     : 'bg-accent/10 text-accent group-hover:bg-accent/20'
                 }`}
             >
@@ -52,7 +52,7 @@ const ResearcherMockup = ({ darkMode }) => (
     <div className={`w-full rounded-xl overflow-hidden border ${darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
         <div className={`px-3 py-2 border-b ${darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
             <div className="flex items-center gap-2">
-                <FileText size={14} className="text-accent" />
+                <FileText size={14} className={darkMode ? 'text-blue-400' : 'text-accent'} />
                 <span className="text-xs text-text/70 truncate">research_paper.pdf</span>
             </div>
         </div>
@@ -78,10 +78,10 @@ const FintechMockup = ({ darkMode }) => (
     <div className={`w-full rounded-xl overflow-hidden border ${darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
         <div className={`px-3 py-2 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}>
             <div className="flex items-center gap-2">
-                <FileText size={12} className="text-accent" />
+                <FileText size={12} className={darkMode ? 'text-blue-400' : 'text-accent'} />
                 <span className="text-xs text-text/70">10k_filing_2024.pdf</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">Risk Analysis</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${darkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-accent/20 text-accent'}`}>Risk Analysis</span>
         </div>
         <div className="p-3 space-y-2">
             <div className={`px-3 py-2 rounded-lg text-xs ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
@@ -90,15 +90,15 @@ const FintechMockup = ({ darkMode }) => (
             <div className={`px-3 py-2 rounded-xl bg-gradient-to-r from-[#3258d5]/10 to-accent/10 border ${darkMode ? 'border-accent/30' : 'border-accent/20'}`}>
                 <ul className="text-xs text-text/80 space-y-1.5">
                     <li className="flex items-start gap-2">
-                        <span className="text-accent mt-0.5">•</span>
+                        <span className={`mt-0.5 ${darkMode ? 'text-blue-400' : 'text-accent'}`}>•</span>
                         <span>Short-term debt maturity</span>
                     </li>
                     <li className="flex items-start gap-2">
-                        <span className="text-accent mt-0.5">•</span>
+                        <span className={`mt-0.5 ${darkMode ? 'text-blue-400' : 'text-accent'}`}>•</span>
                         <span>Interest rate volatility</span>
                     </li>
                     <li className="flex items-start gap-2">
-                        <span className="text-accent mt-0.5">•</span>
+                        <span className={`mt-0.5 ${darkMode ? 'text-blue-400' : 'text-accent'}`}>•</span>
                         <span>Regulatory capital restrictions</span>
                     </li>
                 </ul>
@@ -123,7 +123,7 @@ const ProfessionalMockup = ({ darkMode }) => (
         </div>
         <div className="p-3 space-y-2">
             <div className="flex items-center gap-3">
-                <div className="text-lg font-bold text-accent">78.19%</div>
+                <div className={`text-lg font-bold ${darkMode ? 'text-blue-400' : 'text-accent'}`}>78.19%</div>
                 <div className="flex-1 h-6 rounded bg-gradient-to-r from-accent/20 to-accent/40 relative overflow-hidden">
                     <div className="absolute inset-y-0 left-0 w-3/4 bg-gradient-to-r from-[#3258d5] to-accent rounded"></div>
                 </div>
@@ -132,7 +132,7 @@ const ProfessionalMockup = ({ darkMode }) => (
                 {[40, 60, 45, 80, 55, 70].map((h, i) => (
                     <div key={i} className="flex-1 flex flex-col justify-end h-12">
                         <div
-                            className={`rounded-t transition-all ${i === 3 ? 'bg-accent' : darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}
+                            className={`rounded-t transition-all ${i === 3 ? (darkMode ? 'bg-blue-400' : 'bg-accent') : darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}
                             style={{ height: `${h}%` }}
                         ></div>
                     </div>
@@ -152,8 +152,8 @@ const AuditMockup = ({ darkMode }) => (
         </div>
         <div className={`px-3 py-2 rounded-xl bg-gradient-to-r from-[#3258d5]/10 to-accent/10 border ${darkMode ? 'border-accent/30' : 'border-accent/20'}`}>
             <p className="text-xs text-text/80 leading-relaxed">
-                The requested policy is detailed in <span className="font-medium text-accent">Section 4.2</span>, as stated on
-                <span className="inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded bg-accent/20 text-accent text-[10px] font-medium">
+                The requested policy is detailed in <span className={`font-medium ${darkMode ? 'text-blue-400' : 'text-accent'}`}>Section 4.2</span>, as stated on
+                <span className={`inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-accent/20 text-accent'}`}>
                     Page 14
                 </span>
             </p>
@@ -170,7 +170,7 @@ const MultiFileMockup = ({ darkMode }) => (
         <div className={`px-3 py-2 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-text/70">Uploaded Files</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">3/5</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${darkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-accent/20 text-accent'}`}>3/5</span>
             </div>
         </div>
         <div className="p-3 space-y-1.5">
@@ -181,7 +181,7 @@ const MultiFileMockup = ({ darkMode }) => (
             ].map((file, i) => (
                 <div key={file.name} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-white border border-gray-200'}`}>
                     <div className="w-5 h-5 rounded bg-gradient-to-r from-[#3258d5]/20 to-accent/20 flex items-center justify-center">
-                        <FileText size={10} className="text-accent" />
+                        <FileText size={10} className={darkMode ? 'text-blue-400' : 'text-accent'} />
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-xs text-text/80 truncate">{file.name}</p>
@@ -208,25 +208,25 @@ const LanguageMockup = ({ darkMode }) => (
         </div>
         <div className="p-3 grid grid-cols-3 gap-1.5">
             {[
-                { icon: '🎓', role: 'Student', active: true },
-                { icon: '🔬', role: 'Researcher' },
-                { icon: '💼', role: 'Professional' },
-                { icon: '👨‍🏫', role: 'Teacher' },
-                { icon: '📋', role: 'PM' },
-                { icon: '🚀', role: 'Founder' },
+                { icon: '🛡️', role: 'Compliance', active: true },
+                { icon: '📈', role: 'Analyst' },
+                { icon: '⚖️', role: 'Legal' },
+                { icon: '📋', role: 'Auditor' },
+                { icon: '💰', role: 'CFO' },
+                { icon: '🔍', role: 'Fraud/AML' },
             ].map(({ icon, role, active }) => (
                 <div
                     key={role}
                     className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg text-[10px] transition-all cursor-pointer
                         ${active
-                            ? 'bg-gradient-to-r from-[#3258d5]/20 to-accent/20 border border-accent/30'
+                            ? `bg-gradient-to-r ${darkMode ? 'from-[#3258d5]/10 to-accent/10 border-blue-400/30' : 'from-[#3258d5]/20 to-accent/20 border-accent/30'} border`
                             : darkMode
                                 ? 'bg-gray-700/50 hover:bg-gray-700'
                                 : 'bg-white border border-gray-200 hover:border-accent/30'
                         }`}
                 >
                     <span className="text-base">{icon}</span>
-                    <span className={active ? 'text-accent font-medium' : 'text-text/60'}>{role}</span>
+                    <span className={active ? (darkMode ? 'text-blue-400 font-medium' : 'text-accent font-medium') : 'text-text/60'}>{role}</span>
                 </div>
             ))}
         </div>

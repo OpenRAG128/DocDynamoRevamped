@@ -255,8 +255,7 @@ export default function ChatPage({ darkMode, setMain }) {
                 const data = await getChatMessages(chatId);
 
                 if (!data || !data.messages) {
-                    setChatNotFound(true);
-                    return;
+                    throw new Error("No messages found in API");
                 }
 
                 // Set chat persona/role if returned by API
@@ -273,8 +272,46 @@ export default function ChatPage({ darkMode, setMain }) {
 
                 setMessages(formattedMessages);
             } catch (error) {
-                console.error('Error loading chat messages:', error);
-                setChatNotFound(true);
+                console.error('Error loading chat messages from API:', error);
+
+                // Fallback for legacy local-only chats
+                try {
+                    // Search all possible storage keys
+                    const keysToCheck = ["docDynamoChats", "docDynamoChats_guest"];
+                    const uid = JSON.parse(localStorage.getItem('loginState') || '{}')?.userId;
+                    if (uid) keysToCheck.push(`docDynamoChats_${uid}`);
+
+                    let foundLocalChat = null;
+                    for (const key of keysToCheck) {
+                        const localChatsStr = localStorage.getItem(key);
+                        if (localChatsStr) {
+                            const localChats = JSON.parse(localChatsStr);
+                            foundLocalChat = localChats.find(c => c.id === chatId);
+                            if (foundLocalChat) break;
+                        }
+                    }
+
+                    if (foundLocalChat) {
+                        setChatRole(foundLocalChat.role || 'General');
+
+                        // Reconstruct initial message for legacy chat if exists
+                        if (foundLocalChat.message) {
+                            setMessages([
+                                { id: `user-0`, role: 'user', text: foundLocalChat.message }
+                            ]);
+                        } else {
+                            setMessages([]);
+                        }
+                        // Reset chat not found since it's a legacy chat
+                        setChatNotFound(false);
+                    } else {
+                        setChatNotFound(true);
+                    }
+                } catch (fallbackError) {
+                    console.error("Local fallback error:", fallbackError);
+                    setChatNotFound(true);
+                }
+
             } finally {
                 setIsLoadingChat(false);
             }
