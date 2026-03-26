@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, MessageSquare, FileText, File, FileType, FileType2, SendHorizontalIcon, X, CheckCircle2 } from 'lucide-react';
 import FeaturesSection from './FeaturesSection.jsx';
 import PromptSuggestions from './PromptSuggestions.jsx';
-import { saveFilesToIndexedDB, getUserChats } from '../util/utils.js';
+import { saveFilesToIndexedDB, getUserChats, saveChatWithCloudSync } from '../util/utils.js';
 import { queryDocument } from '../util/api.js';
 import { personas } from '../util/personas.jsx';
 import Footer from './Footer.jsx';
@@ -182,7 +182,13 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
         );
       }
 
-      await saveFilesToIndexedDB(selectedFiles, chatId);
+      await saveChatWithCloudSync(
+        chatId,
+        { role: selectedRole, message: chatMessage },
+        selectedFiles,
+        userId
+      );
+
       window.location.href = `/chat/${chatId}`;
     } catch (err) {
       console.error('Error creating chat:', err);

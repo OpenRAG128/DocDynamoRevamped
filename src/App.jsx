@@ -194,11 +194,12 @@ export default function App() {
 
     // Clear user's chats on logout (for guest users)
     // Firebase users keep their chats tied to their uid
-    const savedState = localStorage.getItem('loginState')
+    const savedState = localStorage.getItem('loginState');
     if (savedState) {
-      const { userId: savedUserId } = JSON.parse(savedState)
-      if (savedUserId && savedUserId.startsWith('guest_')) {
-        await clearUserChats(savedUserId)
+      const { userId: savedUserId } = JSON.parse(savedState);
+      if (savedUserId) {
+        // Clear IndexedDB and local storage for security (prevents leakage on shared devices)
+        await clearUserChats(savedUserId);
       }
     }
 

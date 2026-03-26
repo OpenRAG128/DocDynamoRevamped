@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatedList } from "./AnimatedList.jsx";
 import { renameChat, deleteChat, resetSession } from "../util/api.js";
+import { deleteChatWithCloudSync, saveChatToCloud } from "../util/utils.js";
 import {
   MessageCircle,
   Folder,
@@ -77,6 +78,13 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
 
     try {
       await renameChat(targetChatId, newTitle);
+      // Synchronize update to Firestore
+      if (userId && !userId.startsWith("guest_")) {
+        const chatToUpdate = chats.find(c => c.id === targetChatId);
+        if (chatToUpdate) {
+          await saveChatToCloud({ ...chatToUpdate, title: newTitle }, userId);
+        }
+      }
     } catch (err) {
       console.error("Failed to rename chat", err);
       // Optional: Rollback logic would go here
@@ -94,9 +102,12 @@ export default function Sidebar({ darkMode, collapsed, main, userId, mobileMenuO
       onChatDeleted(chatId);
     }
 
-    // Also remove from local storage (both guest, user, and legacy)
+    // Also remove from local storage and IndexedDB
     try {
-      const keysToCheck = ["docDynamoChats_guest", "docDynamoChats", userId ? `docDynamoChats_${userId}` : null].filter(Boolean);
+      await deleteChatWithCloudSync(chatId, userId);
+
+      // Fallback for legacy keys just in case
+      const keysToCheck = ["docDynamoChats_guest", "docDynamoChats"].filter(Boolean);
       keysToCheck.forEach(key => {
         const localChatsStr = localStorage.getItem(key);
         if (localChatsStr) {

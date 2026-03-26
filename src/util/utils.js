@@ -122,22 +122,24 @@ export const getUserChats = (userId) => {
   try {
     const key = getUserChatStorageKey(userId);
     let chats = JSON.parse(localStorage.getItem(key) || "[]");
-    
+
     // Also include legacy chats if they exist
     try {
       const legacyKey = "docDynamoChats";
       if (key !== legacyKey) {
         const legacyChats = JSON.parse(localStorage.getItem(legacyKey) || "[]");
         if (legacyChats.length > 0) {
-          const existingIds = new Set(chats.map(c => c.id));
-          const newLegacyChats = legacyChats.filter(c => !existingIds.has(c.id));
+          const existingIds = new Set(chats.map((c) => c.id));
+          const newLegacyChats = legacyChats.filter(
+            (c) => !existingIds.has(c.id),
+          );
           chats = [...chats, ...newLegacyChats];
         }
       }
     } catch (e) {
       console.error("Error loading legacy chats:", e);
     }
-    
+
     return chats;
   } catch (error) {
     console.error("Error loading user chats:", error);
@@ -157,15 +159,21 @@ export const saveUserChats = (userId, chats) => {
 export const clearUserChats = async (userId) => {
   try {
     const key = getUserChatStorageKey(userId);
-    const chats = JSON.parse(localStorage.getItem(key) || "[]");
+    let chats = JSON.parse(localStorage.getItem(key) || "[]");
+
+    // Also include legacy chats for deletion if they exist
+    const legacyKey = "docDynamoChats";
+    const legacyChats = JSON.parse(localStorage.getItem(legacyKey) || "[]");
+    const allChats = [...chats, ...legacyChats];
 
     // Delete all files associated with user's chats from IndexedDB
-    for (const chat of chats) {
+    for (const chat of allChats) {
       await deleteFilesFromIndexedDB(chat.id);
     }
 
     // Clear localStorage
     localStorage.removeItem(key);
+    localStorage.removeItem(legacyKey);
   } catch (error) {
     console.error("Error clearing user chats:", error);
   }
