@@ -216,6 +216,14 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
   const handleSelectPrompt = (promptText, roleName) => {
     setChatMessage(promptText);
     setSelectedRole(roleName);
+
+    // The scrollable container is the <main> element wrapper in App.jsx
+    const mainContainer = document.querySelector('main');
+    if (mainContainer) {
+      mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -225,7 +233,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
           {/* Hero Section Header*/}
           <div className='flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 font-family-sans mt-2 animate-fadeIn'>
             <img
-              src="/hero.png"
+              src="/hero_2.png"
               alt="Contextual Intelligence"
               className='w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 drop-shadow-2xl'
             />
@@ -289,8 +297,8 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
 
                 {selectedFiles.length === 0 ?
                   <div className='relative z-10 flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-6'>
-                    <div className={`p-3 sm:p-4 rounded-full transition-all duration-300 ${darkMode ? 'bg-gray-700 group-hover:bg-accent/20' : 'bg-gray-200 group-hover:bg-accent/10'}`}>
-                      <Upload size={28} className={`sm:w-8 sm:h-8 transition-all duration-300 ${isDragging ? 'text-accent animate-bounce' : 'text-gray-500 group-hover:text-accent'}`} />
+                    <div className={`p-3 sm:p-4 rounded-full transition-all duration-300 ${darkMode ? 'bg-gray-700 text-blue-400 group-hover:bg-gray-600' : 'bg-blue-50 text-[#3258d5] group-hover:bg-blue-100'}`}>
+                      <Upload size={28} className={`sm:w-8 sm:h-8 transition-all duration-300 ${isDragging ? 'animate-bounce' : 'group-hover:scale-110'}`} />
                     </div>
                     <div className='flex flex-col items-center gap-2'>
                       <p className='text-text font-semibold text-base sm:text-lg'>Drop files here</p>
