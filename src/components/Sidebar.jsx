@@ -376,17 +376,25 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
         ${darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"}`}
       >
         {collapsed ? (
-          /* Collapsed View */
-          <div className="flex flex-col items-center gap-6 mt-10">
-            <button
-              onClick={toggleSidebar}
-              className={`transition-colors ${darkMode ? "text-gray-400 hover:text-purple-400" : "text-gray-600 hover:text-purple-600"}`}
-              aria-label="Chats"
-            >
-              <MessageCircle size={20} />
-            </button>
-          </div>
-        ) : (
+  <div className="flex flex-col items-center gap-6 mt-10">
+    <div className="relative group">
+      <button
+        onClick={toggleSidebar}
+        className={`transition-colors ${darkMode ? "text-gray-400 hover:text-purple-400" : "text-gray-600 hover:text-purple-600"}`}
+      >
+        <MessageCircle size={20} />
+      </button>
+
+      {/* Tooltip */}
+      <span
+        className={`absolute left-10 top-1/2 -translate-y-1/2 whitespace-nowrap px-2 py-1 text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity
+        ${darkMode ? "bg-gray-800 text-white" : "bg-gray-200 text-black"}`}
+      >
+        Chats
+      </span>
+    </div>
+  </div>
+) : (
           <SidebarContent />
         )}
       </aside>
