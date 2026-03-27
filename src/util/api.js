@@ -99,7 +99,7 @@ export async function processUrls(urls) {
 export async function resetSession() {
   const response = await fetch(`${API_URL}/start_over`, {
     method: "POST",
-    credentials: "include"
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -212,12 +212,9 @@ export async function getChatList({ page = 1, limit = 20 } = {}) {
  *   order: string
  * }>}
  */
-export async function getChatMessages(
-  chatId,
-  { page = 1, limit = 50, order = "asc" } = {},
-) {
+export async function getChatMessages(chatId, { page = 1, limit = 20 } = {}) {
   const response = await fetch(
-    `${API_URL}/api/chat/${chatId}/messages?page=${page}&limit=${limit}&order=${order}`,
+    `${API_URL}/api/chat/${chatId}/messages?page=${page}&limit=${limit}`,
     {
       method: "GET",
       credentials: "include",
