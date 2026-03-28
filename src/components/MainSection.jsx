@@ -477,6 +477,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
             <PromptSuggestions
               darkMode={darkMode}
               onSelectPrompt={handleSelectPrompt}
+              selectedRole={selectedRole}
             />
           </div>
           <FeaturesSection darkMode={darkMode} />
