@@ -40,12 +40,21 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
   const [chatMessage, setChatMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [showRoleHint, setShowRoleHint] = useState(false);
   const fileInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     setMain(false);
   }, []);
+
+  // Auto-hide role hint
+  useEffect(() => {
+    if (showRoleHint) {
+      const timeout = setTimeout(() => setShowRoleHint(false), 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [showRoleHint]);
 
   // Rotate placeholder suggestions
   useEffect(() => {
@@ -256,7 +265,29 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
             }}
           >
             {/* Header */}
-            <div className='pb-4 sm:pb-6 flex flex-col justify-center items-center gap-2'>
+            <div className='pb-4 sm:pb-6 flex flex-col justify-center items-center gap-2 relative w-full'>
+
+              {/* Role Hint Highlight */}
+              {showRoleHint && (
+                <div className="absolute -top-16 left-0 right-0 flex justify-center z-50 pointer-events-none">
+                  <div className={`pointer-events-auto px-4 py-2 rounded-xl flex items-center max-w-lg w-max gap-3 animate-bounceIn shadow-xl transition-colors duration-300 ${darkMode ? 'bg-indigo-500/20 border border-indigo-400/30 text-indigo-100 backdrop-blur-md shadow-indigo-500/10' : 'bg-white border border-indigo-200 text-indigo-800 shadow-indigo-500/20'}`}>
+                    <div className={`p-1 rounded-full ${darkMode ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
+                      <CheckCircle2 size={16} className={darkMode ? 'text-indigo-300' : 'text-indigo-600'} />
+                    </div>
+                    <p className="text-xs sm:text-sm font-medium pr-2">
+                      You’ve selected a persona. Check out the suggested prompts below.
+                    </p>
+                    <button
+                      onClick={() => setShowRoleHint(false)}
+                      className={`shrink-0 p-1.5 rounded-full opacity-70 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center ${darkMode ? 'hover:bg-indigo-500/30' : 'hover:bg-indigo-100'}`}
+                      aria-label="Dismiss hint"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <h2 className='text-text text-center font-family-display text-xl sm:text-2xl font-bold px-4'>Chat with any type of file</h2>
               <div className='flex flex-wrap justify-center font-family-display items-center gap-2 text-xs sm:text-sm text-text/60'>
                 <span className='flex items-center gap-1'><FileType size={14} className="text-blue-500" /> DOCX</span>
@@ -426,6 +457,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                                 onClick={() => {
                                   setSelectedRole(role.label);
                                   setIsDropdownOpen(false);
+                                  setShowRoleHint(true);
                                 }}
                                 className={`w-full cursor-pointer px-3 py-2 text-sm flex items-center gap-2 transition-colors ${selectedRole === role.label
                                   ? darkMode
@@ -484,6 +516,6 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
           <Footer />
         </div>
       </div>
-    </div>
+    </div >
   )
 }  
