@@ -266,8 +266,8 @@ export default function ChatPage({ darkMode, setMain }) {
                 // Convert backend messages to UI format
                 const formattedMessages = data.messages.map((msg, index) => ({
                     id: `${msg.role}-${msg.created_at || index}`,
-                    role: msg.role,
-                    text: msg.content,
+                    role: msg.role === 'model' || msg.role === 'bot' ? 'assistant' : msg.role,
+                    text: msg.content || msg.response || msg.message || msg.answer || msg.text || '',
                 }));
 
                 setMessages(formattedMessages);
