@@ -681,7 +681,7 @@ export default function ChatPage({ darkMode, setMain }) {
                         const isFirstAssistant = m.role === 'assistant' && messages.findIndex(msg => msg.role === 'assistant') === index;
                         return (
                             <div key={m.id}>
-                                <ChatMessage message={m} darkMode={darkMode} />
+                                <ChatMessage message={m} darkMode={darkMode} setInput={setInput} />
                                 {isFirstAssistant && (
                                     <div className={`flex gap-3 mt-4`}>
                                         <div className="shrink-0 w-8" />
