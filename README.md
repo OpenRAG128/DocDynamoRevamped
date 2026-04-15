@@ -1,16 +1,86 @@
-# React + Vite
+# DocDynamo Revamped
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+DocDynamo is a modern, React-based document chat application that enables users to interact with their documents through specialized AI personas (e.g., Student, Researcher). It features a sleek dual-pane interface providing seamless document preview and AI chat capabilities.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Upload & Chat**: Upload documents (PDF, images, etc.) and instantly create chat sessions.
+- **Role-Based Personas**: Contextual AI interactions with specialized personas:
+  - 🎓 Student
+  - 🔬 Researcher
+  - 💼 Professional
+- **Dual-Pane Interface**: Split-view showing both the document preview and the chat session side-by-side.
+- **Local Persistence**:
+  - File contents are stored locally using **IndexedDB**.
+  - Chat metadata and history are persisted in **localStorage**.
+- **Dark Mode**: Fully supported theming with dark/light variants and glossy "glass-morphism" effects.
+- **PDF & Image Support**: Integrated real-time document rendering.
 
-## React Compiler
+## 🏗️ Architecture & Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Routing**: [React Router v7](https://reactrouter.com/)
+- **Animations**: [Motion](https://motion.dev/) & tw-animate-css
+- **Icons**: [Lucide React](https://lucide.dev/) & React Icons
+- **Document Rendering**: React-PDF (pdfjs-dist)
+- **Database (Client-side)**: Firebase (for auth/remote DB, if configured) + Local IndexedDB for offline files.
 
-## Expanding the ESLint configuration
+## 📁 Project Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+src/
+├── components/          # Reusable UI components (Sidebar, ChatPage, etc.)
+├── util/                # Utilities (IndexedDB wrappers, API calls, classes)
+│   ├── api.js           # External API integrations
+│   ├── firebase.js      # Firebase configuration & initialization
+│   ├── personas.jsx     # Persona/Role definitions
+│   └── utils.js         # Common helpers (e.g. `cn` for Tailwind, DB ops)
+├── App.jsx              # Main router and theme provider setup
+├── index.css            # Global styles and Tailwind custom properties
+└── main.jsx             # React entry point
+```
+
+## 💾 Data Flow & Storage
+
+1. **Upload**: Users upload a file via `MainSection.jsx` and select a persona/role.
+2. **Setup**: The app generates a unique `chatId` (UUID).
+3. **File Storage**: The actual file Blob is saved to **IndexedDB** (`DocDynamoDB`, `files` store).
+4. **Metadata Storage**: Chat details (title, timestamps, active role) are stored in **localStorage** under the `docDynamoChats` key.
+5. **Navigation**: The user is routed to `/chat/:chatId` where `ChatPage.jsx` fetches the data and opens the dual-pane view.
+
+## ⚙️ Development & Scripts
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm or yarn
+
+### Installation
+
+Clone the repository and install dependencies:
+
+```bash
+npm install
+```
+
+### Available Scripts
+
+- `npm run dev` - Start the Vite development server with Hot Module Replacement (HMR).
+- `npm run build` - Compile and build the project for production.
+- `npm run preview` - Preview the built production application locally.
+- `npm run lint` - Run ESLint checks across the codebase.
+
+## 🎨 Styling & Theming Conventions
+
+- **CSS Variables**: Core theme colors and backgrounds are defined in `src/index.css` as custom properties.
+- **Tailwind v4**: Handled through `@tailwindcss/vite`.
+- **Glass Effects**: Reusable `backdrop-blur-xl` classes are used for overlay elements to give a frosted glass aesthetic (found in `glassBase` patterns).
+
+## 📄 Handling Documents (PDF integration)
+
+PDF management is implemented using `pdfjs-dist` and `react-pdf`.
+
+- Previews are embedded using an `iframe` with all default browser toolbars disabled.
+- Custom zoom controls and panning are achieved through CSS transforms.
+- Non-standard file types lacking previews gracefully fallback to a standard "No preview available" state.
