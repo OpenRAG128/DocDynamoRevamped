@@ -77,14 +77,14 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
       return;
     }
 
-    const allowedExtensions = ['pdf', 'doc', 'docx', 'txt'];
+    const allowedExtensions = ['pdf', 'doc', 'docx', 'txt', 'csv', 'xlsx'];
     const hasInvalid = incomingFiles.some((file) => {
       const extension = file.name.split('.').pop().toLowerCase();
       return !allowedExtensions.includes(extension);
     });
 
     if (hasInvalid) {
-      setError('Some files are unsupported. Please upload only PDF, DOC/DOCX, or TXT files.');
+      setError('Some files are unsupported. Please upload only PDF, DOC/DOCX, TXT, CSV, or XLSX files.');
       setSelectedFiles([]);
       return;
     }
@@ -297,6 +297,8 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                 <span className='flex items-center gap-1'><File size={14} className="text-blue-600" /> Word</span>
                 <span>•</span>
                 <span className='flex items-center gap-1'><FileType2 size={14} className="text-gray-500" /> TXT</span>
+                <span>•</span>
+                <span className='flex items-center gap-1'><FileType2 size={14} className="text-green-500" /> CSV/XLSX</span>
               </div>
             </div>
 
@@ -318,7 +320,7 @@ export default function MainSection({ darkMode, setMain, hasAccount, loggedIn, u
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".pdf,.doc,.docx,.txt"
+                  accept=".pdf,.doc,.docx,.txt,.csv,.xlsx"
                   multiple
                   className="hidden"
                   onChange={handleFileChange}

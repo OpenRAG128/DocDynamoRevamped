@@ -5,6 +5,11 @@ import { getFilesFromIndexedDB, saveFilesToIndexedDB } from '@/util/utils.js';
 import { sendChatMessage, getChatMessages, generateQuestions, generateConcepts } from '@/util/api.js';
 import PdfToolbar from '@/components/PdfToolbar.jsx';
 import ChatMessage from '@/components/ChatMessage.jsx';
+import DocxPreview from '@/components/previewers/DocxPreview.jsx';
+import TextPreview from '@/components/previewers/TextPreview.jsx';
+import SpreadsheetPreview from '@/components/previewers/SpreadsheetPreview.jsx';
+import UnsupportedFileFallback from '@/components/previewers/UnsupportedFileFallback.jsx';
+import FileHeader from '@/components/previewers/FileHeader.jsx';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -523,55 +528,85 @@ export default function ChatPage({ darkMode, setMain }) {
                 <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
                     <div ref={scrollContainerRef} className="flex-1 overflow-auto flex items-start justify-center p-4">
                         {previewUrl ? (
-                            chatFiles[selectedFileIndex]?.type?.startsWith('image/') ? (
-                                <div className="flex items-center justify-center">
-                                    <img
-                                        src={previewUrl}
-                                        alt={chatFiles[selectedFileIndex]?.name || 'Document preview'}
-                                        className="max-w-full max-h-full object-contain"
-                                        style={{ transform: `scale(${zoom / 100})` }}
-                                    />
-                                </div>
-                            ) : (
-                                <Document
-                                    file={previewUrl}
-                                    onLoadSuccess={async (pdf) => {
-                                        setTotalPages(pdf.numPages);
-                                        setCurrentPage(1);
+                            (() => {
+                                const currentFile = chatFiles[selectedFileIndex];
+                                const ext = currentFile?.name?.split('.').pop()?.toLowerCase();
 
-                                        // Get the first page to determine base width
-                                        const firstPage = await pdf.getPage(1);
-                                        const viewport = firstPage.getViewport({ scale: 1 });
-                                        setPdfBaseWidth(viewport.width);
-
-                                        const textPages = await extractPdfText(pdf);
-                                        setPdfTextPages(textPages);
-                                    }}
-                                    loading={
-                                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            Loading PDF…
-                                        </p>
-                                    }
-                                    error={
-                                        <p className="text-sm text-red-500">
-                                            Failed to load PDF
-                                        </p>
-                                    }
-                                    className="flex flex-col items-center gap-4"
-                                >
-                                    {Array.from({ length: totalPages }, (_, index) => (
-                                        <div key={`page-wrapper-${index + 1}`} id={`pdf-page-${index + 1}`}>
-                                            <Page
-                                                pageNumber={index + 1}
-                                                width={getPageWidth()}
-                                                renderTextLayer={true}
-                                                renderAnnotationLayer={false}
-                                                className="shadow-md"
+                                if (currentFile?.type?.startsWith('image/')) {
+                                    return (
+                                        <div className="flex items-center justify-center">
+                                            <img
+                                                src={previewUrl}
+                                                alt={currentFile?.name || 'Document preview'}
+                                                className="max-w-full max-h-full object-contain"
+                                                style={{ transform: `scale(${zoom / 100})` }}
                                             />
                                         </div>
-                                    ))}
-                                </Document>
-                            )
+                                    );
+                                }
+
+                                if (ext === 'docx') {
+                                    return <DocxPreview file={currentFile} zoom={zoom} />;
+                                }
+
+                                if (ext === 'txt') {
+                                    return <TextPreview file={currentFile} zoom={zoom} />;
+                                }
+
+                                if (ext === 'csv' || ext === 'xlsx') {
+                                    return <SpreadsheetPreview file={currentFile} zoom={zoom} darkMode={darkMode} />;
+                                }
+
+                                if (ext === 'doc') {
+                                    return <UnsupportedFileFallback file={currentFile} darkMode={darkMode} />;
+                                }
+
+                                // Fallback to PDF renderer or Unsupported
+                                if (ext === 'pdf' || currentFile?.type === 'application/pdf') {
+                                    return (
+                                        <Document
+                                            file={previewUrl}
+                                            onLoadSuccess={async (pdf) => {
+                                                setTotalPages(pdf.numPages);
+                                                setCurrentPage(1);
+
+                                                // Get the first page to determine base width
+                                                const firstPage = await pdf.getPage(1);
+                                                const viewport = firstPage.getViewport({ scale: 1 });
+                                                setPdfBaseWidth(viewport.width);
+
+                                                const textPages = await extractPdfText(pdf);
+                                                setPdfTextPages(textPages);
+                                            }}
+                                            loading={
+                                                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                    Loading PDF…
+                                                </p>
+                                            }
+                                            error={
+                                                <p className="text-sm text-red-500">
+                                                    Failed to load PDF
+                                                </p>
+                                            }
+                                            className="flex flex-col items-center gap-4"
+                                        >
+                                            {Array.from({ length: totalPages }, (_, index) => (
+                                                <div key={`page-wrapper-${index + 1}`} id={`pdf-page-${index + 1}`}>
+                                                    <Page
+                                                        pageNumber={index + 1}
+                                                        width={getPageWidth()}
+                                                        renderTextLayer={true}
+                                                        renderAnnotationLayer={false}
+                                                        className="shadow-md"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </Document>
+                                    );
+                                }
+
+                                return <UnsupportedFileFallback file={currentFile} darkMode={darkMode} />;
+                            })()
                         ) : (
                             <div className="h-full w-full flex items-center justify-center">
                                 {filesNotAvailable ? (
@@ -627,6 +662,7 @@ export default function ChatPage({ darkMode, setMain }) {
                         darkMode={darkMode}
                         minZoom={50}
                         maxZoom={200}
+                        isPdf={chatFiles[selectedFileIndex]?.name?.split('.').pop()?.toLowerCase() === 'pdf' || chatFiles[selectedFileIndex]?.type === 'application/pdf'}
                     />
 
                 </div>

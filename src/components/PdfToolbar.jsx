@@ -14,6 +14,7 @@ export default function PdfToolbar({
     darkMode = false,
     minZoom = 100,
     maxZoom = 200,
+    isPdf = true, // default to true to keep backward compatibility
 }) {
     const [pageInput, setPageInput] = useState(String(currentPage));
     const [showSearch, setShowSearch] = useState(false);
@@ -97,7 +98,7 @@ export default function PdfToolbar({
                     : "bg-white/90 border-gray-200/50"}`}
         >
             {/* -------------------- Search Input -------------------- */}
-            {showSearch && (
+            {isPdf && showSearch && (
                 <>
                     <div
                         className={`flex items-center gap-1 px-2 py-1 rounded-md border transition-all
@@ -157,60 +158,64 @@ export default function PdfToolbar({
                 <ZoomIn size={16} />
             </button>
 
-            <Divider darkMode={darkMode} />
+            {isPdf && (
+                <>
+                    <Divider darkMode={darkMode} />
 
-            {/* -------------------- Page Navigation -------------------- */}
-            <button
-                type="button"
-                aria-label="Previous page"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className={`${baseBtn} ${currentPage === 1 ? disabledBtn : enabledBtn}`}
-            >
-                <ChevronLeft size={16} />
-            </button>
+                    {/* -------------------- Page Navigation -------------------- */}
+                    <button
+                        type="button"
+                        aria-label="Previous page"
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        className={`${baseBtn} ${currentPage === 1 ? disabledBtn : enabledBtn}`}
+                    >
+                        <ChevronLeft size={16} />
+                    </button>
 
-            {/* -------------------- Page Selector -------------------- */}
-            <div
-                className={`flex items-center gap-1 text-sm
-        ${darkMode ? "text-gray-300" : "text-gray-700"}`}
-            >
-                <input
-                    type="text"
-                    inputMode="numeric"
-                    value={pageInput}
-                    onChange={(e) => {
-                        if (/^\d*$/.test(e.target.value)) {
-                            setPageInput(e.target.value);
-                        }
-                    }}
-                    onBlur={() => commitPageChange()}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            e.preventDefault();
-                            commitPageChange(true);
-                        }
-                        if (e.key === "Escape") {
-                            setPageInput(String(currentPage));
-                            e.currentTarget.blur();
-                        }
-                    }}
-                    className={`w-8 text-center bg-transparent border-none outline-none
-          ${darkMode ? "text-gray-300" : "text-gray-700"}`}
-                    aria-label="Page number"
-                />
-                <span className="whitespace-nowrap">of {totalPages}</span>
-            </div>
+                    {/* -------------------- Page Selector -------------------- */}
+                    <div
+                        className={`flex items-center gap-1 text-sm
+                ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                    >
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            value={pageInput}
+                            onChange={(e) => {
+                                if (/^\d*$/.test(e.target.value)) {
+                                    setPageInput(e.target.value);
+                                }
+                            }}
+                            onBlur={() => commitPageChange()}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    commitPageChange(true);
+                                }
+                                if (e.key === "Escape") {
+                                    setPageInput(String(currentPage));
+                                    e.currentTarget.blur();
+                                }
+                            }}
+                            className={`w-8 text-center bg-transparent border-none outline-none
+                  ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                            aria-label="Page number"
+                        />
+                        <span className="whitespace-nowrap">of {totalPages}</span>
+                    </div>
 
-            <button
-                type="button"
-                aria-label="Next page"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className={`${baseBtn} ${currentPage === totalPages ? disabledBtn : enabledBtn}`}
-            >
-                <ChevronRight size={16} />
-            </button>
+                    <button
+                        type="button"
+                        aria-label="Next page"
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`${baseBtn} ${currentPage === totalPages ? disabledBtn : enabledBtn}`}
+                    >
+                        <ChevronRight size={16} />
+                    </button>
+                </>
+            )}
 
             <Divider darkMode={darkMode} />
 
@@ -218,7 +223,7 @@ export default function PdfToolbar({
             {onDownload && (
                 <button
                     type="button"
-                    aria-label="Download PDF"
+                    aria-label="Download Document"
                     onClick={onDownload}
                     className={`${baseBtn} ${enabledBtn}`}
                 >
@@ -227,7 +232,7 @@ export default function PdfToolbar({
             )}
 
             {/* -------------------- Search Toggle -------------------- */}
-            {onSearch && (
+            {isPdf && onSearch && (
                 <button
                     type="button"
                     aria-label="Search document"
