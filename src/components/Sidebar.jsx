@@ -24,7 +24,7 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
   const location = useLocation();
   const [cycle, setCycle] = useState(0);
   const [chats, setChats] = useState(initialChats);
-  
+
   const [activeDropdown, setActiveDropdown] = useState(null); // { id, top, left } or null
   const [renamingChat, setRenamingChat] = useState(null);
   const [newChatTitle, setNewChatTitle] = useState("");
@@ -327,6 +327,18 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
             {hasAccount ? 'Login' : 'Sign up'}
           </button>
         )}
+        <a
+          href="https://forms.gle/fsZ7GMXjbYRDKeoV9"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`flex items-center justify-center gap-2 w-full text-center py-2 px-4 text-sm font-medium rounded-full border transition-all duration-200 ${darkMode
+              ? "border-gray-700/50 text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 hover:border-gray-600"
+              : "border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-100 hover:border-gray-300"
+            }`}
+        >
+          <MessageCircle size={16} />
+          Feedback / Report Bug
+        </a>
       </div>
     </>
   );
@@ -376,25 +388,25 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
         ${darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"}`}
       >
         {collapsed ? (
-  <div className="flex flex-col items-center gap-6 mt-10">
-    <div className="relative group">
-      <button
-        onClick={toggleSidebar}
-        className={`transition-colors ${darkMode ? "text-gray-400 hover:text-purple-400" : "text-gray-600 hover:text-purple-600"}`}
-      >
-        <MessageCircle size={20} />
-      </button>
+          <div className="flex flex-col items-center gap-6 mt-10">
+            <div className="relative group">
+              <button
+                onClick={toggleSidebar}
+                className={`transition-colors ${darkMode ? "text-gray-400 hover:text-purple-400" : "text-gray-600 hover:text-purple-600"}`}
+              >
+                <MessageCircle size={20} />
+              </button>
 
-      {/* Tooltip */}
-      <span
-        className={`absolute left-10 top-1/2 -translate-y-1/2 whitespace-nowrap px-2 py-1 text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity
+              {/* Tooltip */}
+              <span
+                className={`absolute left-10 top-1/2 -translate-y-1/2 whitespace-nowrap px-2 py-1 text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity
         ${darkMode ? "bg-gray-800 text-white" : "bg-gray-200 text-black"}`}
-      >
-        Chats
-      </span>
-    </div>
-  </div>
-) : (
+              >
+                Chats
+              </span>
+            </div>
+          </div>
+        ) : (
           <SidebarContent />
         )}
       </aside>
