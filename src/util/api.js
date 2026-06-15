@@ -288,3 +288,20 @@ export async function deleteChat(chatId) {
 
   return response.json();
 }
+
+/** Resets the chat or chat's content but the context remains of the pdf.
+ * @param { string } chatId - The chat ID
+ */
+export async function resetChat(chatId) {
+  const response = await fetch(`${API_URL}/api/chat/${chatId}/reset`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API error: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}

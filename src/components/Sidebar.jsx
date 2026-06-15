@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatedList } from "./AnimatedList.jsx";
-import { renameChat, deleteChat, resetSession } from "../util/api.js";
+import { renameChat, deleteChat, resetChat } from "../util/api.js";
 import { deleteChatWithCloudSync, saveChatToCloud } from "../util/utils.js";
 import {
   MessageCircle,
@@ -144,7 +144,7 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
     }
 
     try {
-      await resetSession();
+      await resetChat(chatId);
     } catch (err) {
       console.error("Failed to reset chat", err);
     }
@@ -332,8 +332,8 @@ export default function Sidebar({ darkMode, main, collapsed, toggleSidebar, user
           target="_blank"
           rel="noopener noreferrer"
           className={`flex items-center justify-center gap-2 w-full text-center py-2 px-4 text-sm font-medium rounded-full border transition-all duration-200 ${darkMode
-              ? "border-gray-700/50 text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 hover:border-gray-600"
-              : "border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-100 hover:border-gray-300"
+            ? "border-gray-700/50 text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 hover:border-gray-600"
+            : "border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-100 hover:border-gray-300"
             }`}
         >
           <MessageCircle size={16} />
